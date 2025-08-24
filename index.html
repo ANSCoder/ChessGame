@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess with AI</title>
+    <title>Minimalist Chess with AI</title>
     <style>
         * {
             margin: 0;
@@ -28,13 +28,14 @@
             flex-direction: column;
             align-items: center;
             gap: 20px;
-            max-width: 900px;
+            max-width: 1000px;
             width: 100%;
         }
         
         header {
             text-align: center;
             margin-bottom: 10px;
+            width: 100%;
         }
         
         h1 {
@@ -50,12 +51,19 @@
             margin-bottom: 10px;
         }
         
-        .game-container {
+        .main-content {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 30px;
             width: 100%;
+        }
+        
+        .board-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
         }
         
         .chess-board {
@@ -81,11 +89,11 @@
         }
         
         .square.light {
-            background-color: #f5f6fa;
+            background-color: #e6e6e6;
         }
         
         .square.dark {
-            background-color: #2f3542;
+            background-color: #767676;
         }
         
         .square.selected {
@@ -116,45 +124,18 @@
             background-color: transparent;
         }
         
-        .coordinates {
-            position: absolute;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .coordinate-file {
-            bottom: 4px;
-            right: 6px;
-            color: rgba(0, 0, 0, 0.7);
-        }
-        
-        .square.dark .coordinate-file {
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .coordinate-rank {
-            top: 4px;
-            left: 6px;
-            color: rgba(0, 0, 0, 0.7);
-        }
-        
-        .square.dark .coordinate-rank {
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
         .game-info {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            width: 320px;
-            background: rgba(39, 60, 117, 0.8);
+            width: 400px;
+            background: rgba(39, 60, 117, 0.9);
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
         }
         
-        .status {
+        .status-container {
             text-align: center;
             padding: 12px;
             background: rgba(0, 0, 0, 0.25);
@@ -165,9 +146,20 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
+        .ai-thinking {
+            display: none;
+            text-align: center;
+            color: #7bed9f;
+            font-style: italic;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            animation: fadeInOut 1.5s infinite;
+        }
+        
         .captured-pieces {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             gap: 15px;
         }
         
@@ -178,12 +170,16 @@
             gap: 6px;
             font-size: 22px;
             align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
         }
         
         .captured-title {
-            font-size: 0.9rem;
+            font-size: 1rem;
             margin-bottom: 5px;
             color: #dfe4ea;
+            font-weight: bold;
         }
         
         .controls {
@@ -210,6 +206,27 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
         
+        .difficulty-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        select {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #576574;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        label {
+            color: #dfe4ea;
+            font-weight: 500;
+        }
+        
         .move-history {
             max-height: 180px;
             overflow-y: auto;
@@ -231,37 +248,6 @@
             width: 35px;
             color: #f9ca24;
             font-weight: bold;
-        }
-        
-        .ai-thinking {
-            display: none;
-            text-align: center;
-            color: #7bed9f;
-            font-style: italic;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 6px;
-            animation: fadeInOut 1.5s infinite;
-        }
-        
-        .difficulty-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        select {
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #576574;
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            font-size: 1rem;
-        }
-        
-        label {
-            color: #dfe4ea;
-            font-weight: 500;
         }
         
         .game-over-message {
@@ -337,7 +323,7 @@
         }
         
         @media (max-width: 900px) {
-            .game-container {
+            .main-content {
                 flex-direction: column;
                 align-items: center;
             }
@@ -365,14 +351,15 @@
             <p class="subtitle">Play against computer opponent</p>
         </header>
         
-        <div class="game-container">
-            <div class="chess-board" id="chessboard">
-                <!-- Chessboard will be generated by JavaScript -->
+        <div class="main-content">
+            <div class="board-section">
+                <div class="chess-board" id="chessboard">
+                    <!-- Chessboard will be generated by JavaScript -->
+                </div>
+                <div class="status-container" id="status">White (You) to move</div>
             </div>
             
             <div class="game-info">
-                <div class="status" id="status">White (You) to move</div>
-                
                 <div class="ai-thinking" id="ai-thinking">AI is thinking...</div>
                 
                 <div class="difficulty-selector">
@@ -444,8 +431,6 @@
             // Create the chess board
             function createBoard() {
                 chessBoard.innerHTML = '';
-                const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-                const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
                 
                 for (let rank = 0; rank < 8; rank++) {
                     for (let file = 0; file < 8; file++) {
@@ -454,21 +439,6 @@
                         square.classList.add((rank + file) % 2 === 0 ? 'light' : 'dark');
                         square.dataset.rank = rank;
                         square.dataset.file = file;
-                        
-                        // Add coordinates
-                        if (rank === 7) {
-                            const fileCoord = document.createElement('span');
-                            fileCoord.classList.add('coordinates', 'coordinate-file');
-                            fileCoord.textContent = files[file];
-                            square.appendChild(fileCoord);
-                        }
-                        
-                        if (file === 0) {
-                            const rankCoord = document.createElement('span');
-                            rankCoord.classList.add('coordinates', 'coordinate-rank');
-                            rankCoord.textContent = ranks[rank];
-                            square.appendChild(rankCoord);
-                        }
                         
                         square.addEventListener('click', () => handleSquareClick(rank, file));
                         chessBoard.appendChild(square);
@@ -510,21 +480,6 @@
                     
                     // Clear previous content
                     square.textContent = '';
-                    
-                    // Add coordinates if needed
-                    if (rank === 7) {
-                        const fileCoord = document.createElement('span');
-                        fileCoord.classList.add('coordinates', 'coordinate-file');
-                        fileCoord.textContent = String.fromCharCode(97 + file);
-                        square.appendChild(fileCoord);
-                    }
-                    
-                    if (file === 0) {
-                        const rankCoord = document.createElement('span');
-                        rankCoord.classList.add('coordinates', 'coordinate-rank');
-                        rankCoord.textContent = 8 - rank;
-                        square.appendChild(rankCoord);
-                    }
                     
                     // Add piece if present
                     if (piece) {
