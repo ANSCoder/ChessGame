@@ -30,12 +30,13 @@ class MoveValidator {
         const piece = board[fromRow][fromCol];
         if (!piece) return false;
 
-        return true; // simple free movement (basic version)
+        return true; // basic free movement
     }
 }
 
 class ChessAI {
-    calculateBestMove(board) {
+    calculateBestMove(board, level = "easy") {
+
         const moves = [];
 
         for (let r = 0; r < 8; r++) {
@@ -51,6 +52,7 @@ class ChessAI {
         }
 
         if (moves.length === 0) return null;
+
         return moves[Math.floor(Math.random() * moves.length)];
     }
 }
@@ -62,6 +64,7 @@ class ChessGame {
         this.chessAI = new ChessAI();
         this.currentTurn = "white";
         this.selected = null;
+        this.level = "easy";
     }
 
     startGame() {
@@ -72,25 +75,45 @@ class ChessGame {
     }
 
     makeMove(fromRow, fromCol, toRow, toCol) {
-        if (!this.moveValidator.validateMove(this.board.squares, fromRow, fromCol, toRow, toCol))
-            return;
+
+        const targetPiece = this.board.squares[toRow][toCol];
+
+        if (!this.moveValidator.validateMove(
+            this.board.squares, fromRow, fromCol, toRow, toCol
+        )) return;
 
         this.board.movePiece(fromRow, fromCol, toRow, toCol);
-        this.currentTurn = this.currentTurn === "white" ? "black" : "white";
+
         this.ui.renderBoard();
 
+        // 🎬 Capture effect
+        if (targetPiece) {
+            this.ui.playCaptureEffect(toRow, toCol);
+        }
+
+        this.currentTurn = this.currentTurn === "white" ? "black" : "white";
+
         if (this.currentTurn === "black") {
-            setTimeout(() => this.aiMove(), 300);
+            setTimeout(() => this.aiMove(), 500);
         }
     }
 
     aiMove() {
-        const move = this.chessAI.calculateBestMove(this.board.squares);
+
+        const move = this.chessAI.calculateBestMove(this.board.squares, this.level);
         if (!move) return;
 
+        const targetPiece = this.board.squares[move.toRow][move.toCol];
+
         this.board.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol);
-        this.currentTurn = "white";
+
         this.ui.renderBoard();
+
+        if (targetPiece) {
+            this.ui.playCaptureEffect(move.toRow, move.toCol);
+        }
+
+        this.currentTurn = "white";
     }
 
     setUI(ui) {
@@ -102,6 +125,7 @@ class ChessGameUI {
     constructor(game) {
         this.game = game;
         this.boardElement = document.getElementById("chessBoard");
+
         this.pieces = {
             r:'♜',n:'♞',b:'♝',q:'♛',k:'♚',p:'♟',
             R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔',P:'♙'
@@ -113,6 +137,7 @@ class ChessGameUI {
 
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
+
                 const square = document.createElement("div");
                 square.className = "square " + ((r + c) % 2 === 0 ? "white-square" : "black-square");
 
@@ -120,6 +145,7 @@ class ChessGameUI {
                 if (piece) square.textContent = this.pieces[piece];
 
                 square.addEventListener("click", () => {
+                    Add highlighting
                     if (this.game.selected) {
                         this.game.makeMove(this.game.selected.row, this.game.selected.col, r, c);
                         this.game.selected = null;
@@ -132,17 +158,36 @@ class ChessGameUI {
             }
         }
     }
+
+    playCaptureEffect(row, col) {
+
+        const index = row * 8 + col;
+        const square = this.boardElement.children[index];
+        if (!square) return;
+
+        square.classList.add("capture-explode");
+        document.body.classList.add("screen-shake");
+
+        setTimeout(() => {
+            square.classList.remove("capture-explode");
+            document.body.classList.remove("screen-shake");
+        }, 400);
+    }
 }
 
 /* ===== INITIALIZATION ===== */
 
 document.addEventListener("DOMContentLoaded", () => {
+
     const game = new ChessGame();
     const ui = new ChessGameUI(game);
     game.setUI(ui);
 
     document.getElementById("startBtn").onclick = () => game.startGame();
     document.getElementById("resetBtn").onclick = () => game.startGame();
+    document.getElementById("themeBtn").onclick = () => {
+        document.body.classList.toggle("light-mode");
+    };
 
     game.startGame();
 });
