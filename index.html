@@ -1,79 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cinematic Chess AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHESS</title>
 
 <link rel="stylesheet" href="style.css">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Libraries must load BEFORE our script -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
-
-<style>
-/* Capture Animation */
-.capture-attack { animation: attackMove 0.25s ease forwards; }
-.capture-die { animation: pieceDie 0.4s ease forwards; }
-
-@keyframes attackMove {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.4); }
-  100% { transform: scale(1); }
-}
-
-@keyframes pieceDie {
-  0% { opacity:1; transform:scale(1); }
-  50% { opacity:0.5; transform:scale(1.5) rotate(25deg); }
-  100% { opacity:0; transform:scale(0); }
-}
-
-/* Screen shake */
-body.shake { animation: shake 0.3s; }
-
-@keyframes shake {
-  0% { transform:translateX(0); }
-  25% { transform:translateX(-5px); }
-  50% { transform:translateX(5px); }
-  75% { transform:translateX(-5px); }
-  100% { transform:translateX(0); }
-}
-</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 </head>
 <body>
 
-<h1>Cinematic Chess AI</h1>
+<h1 class="title">♛ CHESS ♛</h1>
 
 <div class="controls">
     <button onclick="startGame()">Start</button>
     <button onclick="resetGame()">Reset</button>
-
-    <select id="difficulty">
-        <option value="1">Easy</option>
-        <option value="2">Medium</option>
-        <option value="3">Hard</option>
-        <option value="4">Insane</option>
-    </select>
-
-    <button onclick="toggleMode()">Toggle 2D / 3D</button>
+    <button onclick="toggleTheme()">Toggle Dark/Light</button>
+    <button onclick="toggleMode()">2D / 3D</button>
 </div>
 
 <div id="chessBoard" class="chess-board"></div>
 
 <script>
-
 let game = new Chess();
-let selected = null;
+let selectedSquare = null;
 let mode = "2D";
 
 const boardElement = document.getElementById("chessBoard");
-const difficultySelect = document.getElementById("difficulty");
 
-const pieceUnicode = {
-p:'♟',r:'♜',n:'♞',b:'♝',q:'♛',k:'♚',
-P:'♙',R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔'
+const pieceMap = {
+  p:'♟', r:'♜', n:'♞', b:'♝', q:'♛', k:'♚',
+  P:'♙', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔'
 };
 
-/* START / RESET */
+/* ======================
+   START / RESET
+====================== */
 
 function startGame(){
     game.reset();
@@ -84,199 +50,121 @@ function resetGame(){
     startGame();
 }
 
-/* RENDER */
+/* ======================
+   RENDER
+====================== */
 
 function render(){
-    if(mode==="2D") render2D();
+    if(mode === "2D") render2D();
     else render3D();
 }
 
 function render2D(){
-    boardElement.innerHTML="";
+    boardElement.innerHTML = "";
     const board = game.board();
 
     for(let r=0;r<8;r++){
         for(let c=0;c<8;c++){
-            const square=document.createElement("div");
+            const square = document.createElement("div");
             square.classList.add("square");
-            square.classList.add((r+c)%2===0?"white-square":"black-square");
+            square.classList.add((r+c)%2===0 ? "white-square":"black-square");
             square.dataset.square = String.fromCharCode(97+c)+(8-r);
 
-            const piece=board[r][c];
+            const piece = board[r][c];
             if(piece){
-                const key=piece.color==="w"?
-                    piece.type.toUpperCase():
-                    piece.type;
-                square.textContent=pieceUnicode[key];
+                const key = piece.color==="w"
+                    ? piece.type.toUpperCase()
+                    : piece.type;
+                square.textContent = pieceMap[key];
             }
 
-            square.onclick=handleClick;
+            square.onclick = handleClick;
             boardElement.appendChild(square);
         }
     }
-
-    if(game.isCheckmate()) alert("Checkmate!");
-    if(game.isDraw()) alert("Draw!");
 }
-
-/* USER MOVE */
 
 function handleClick(e){
-    if(game.turn()!=="w") return;
+    if(game.turn() !== "w") return;
 
-    const square=e.target.dataset.square;
+    const square = e.target.dataset.square;
 
-    if(selected){
-        const move=game.move({from:selected,to:square,promotion:"q"});
-        selected=null;
+    if(selectedSquare){
+        const move = game.move({
+            from: selectedSquare,
+            to: square,
+            promotion: "q"
+        });
+
+        selectedSquare = null;
 
         if(move){
-            if(move.captured){
-                playCaptureAnimation(move);
-            } else {
-                render();
-            }
-            setTimeout(aiMove,400);
+            render();
+            setTimeout(aiMove, 300);
         } else {
             render();
         }
         return;
     }
 
-    selected=square;
+    selectedSquare = square;
 }
 
-/* CAPTURE ANIMATION */
-
-function playCaptureAnimation(move){
-    const fromSquare=document.querySelector(`[data-square='${move.from}']`);
-    const toSquare=document.querySelector(`[data-square='${move.to}']`);
-
-    if(!fromSquare||!toSquare){
-        render();
-        return;
-    }
-
-    fromSquare.classList.add("capture-attack");
-    toSquare.classList.add("capture-die");
-
-    document.body.classList.add("shake");
-
-    setTimeout(()=>{
-        document.body.classList.remove("shake");
-        render();
-    },350);
-}
-
-/* AI */
+/* ======================
+   SIMPLE AI (Stable)
+====================== */
 
 function aiMove(){
-    const depth=parseInt(difficultySelect.value);
-    const bestMove=minimaxRoot(depth,true);
-    if(bestMove){
-        if(bestMove.captured){
-            const moveObj=game.move(bestMove);
-            render();
-        } else {
-            game.move(bestMove);
-            render();
-        }
-    }
+    const moves = game.moves({verbose:true});
+    if(moves.length === 0) return;
+
+    const randomMove = moves[Math.floor(Math.random()*moves.length)];
+    game.move(randomMove);
+    render();
 }
 
-function minimaxRoot(depth,isMax){
-    const moves=game.moves({verbose:true});
-    let bestScore=-Infinity;
-    let bestMove=null;
+/* ======================
+   THEME TOGGLE
+====================== */
 
-    for(let move of moves){
-        game.move(move);
-        const score=minimax(depth-1,-Infinity,Infinity,false);
-        game.undo();
-
-        if(score>bestScore){
-            bestScore=score;
-            bestMove=move;
-        }
-    }
-    return bestMove;
+function toggleTheme(){
+    document.body.classList.toggle("light-mode");
 }
 
-function minimax(depth,alpha,beta,isMax){
-    if(depth===0) return evaluateBoard();
-
-    const moves=game.moves({verbose:true});
-
-    if(isMax){
-        let maxEval=-Infinity;
-        for(let move of moves){
-            game.move(move);
-            const evalScore=minimax(depth-1,alpha,beta,false);
-            game.undo();
-            maxEval=Math.max(maxEval,evalScore);
-            alpha=Math.max(alpha,evalScore);
-            if(beta<=alpha) break;
-        }
-        return maxEval;
-    } else {
-        let minEval=Infinity;
-        for(let move of moves){
-            game.move(move);
-            const evalScore=minimax(depth-1,alpha,beta,true);
-            game.undo();
-            minEval=Math.min(minEval,evalScore);
-            beta=Math.min(beta,evalScore);
-            if(beta<=alpha) break;
-        }
-        return minEval;
-    }
-}
-
-function evaluateBoard(){
-    const values={p:10,n:30,b:30,r:50,q:90,k:900};
-    let total=0;
-    const board=game.board();
-
-    for(let row of board){
-        for(let piece of row){
-            if(piece){
-                const val=values[piece.type];
-                total+=piece.color==="b"?val:-val;
-            }
-        }
-    }
-    return total;
-}
-
-/* 3D MODE */
+/* ======================
+   3D MODE
+====================== */
 
 function toggleMode(){
-    mode=mode==="2D"?"3D":"2D";
+    mode = mode === "2D" ? "3D" : "2D";
     render();
 }
 
 function render3D(){
-    boardElement.innerHTML="";
-    const scene=new THREE.Scene();
-    const camera=new THREE.PerspectiveCamera(75,1,0.1,1000);
-    const renderer=new THREE.WebGLRenderer();
+    boardElement.innerHTML = "";
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75,1,0.1,1000);
+    const renderer = new THREE.WebGLRenderer({antialias:true});
+
     renderer.setSize(600,600);
     boardElement.appendChild(renderer.domElement);
 
     camera.position.set(0,10,10);
     camera.lookAt(0,0,0);
 
-    const light=new THREE.DirectionalLight(0xffffff,1);
+    const light = new THREE.DirectionalLight(0xffffff,1);
     light.position.set(5,10,5);
     scene.add(light);
 
     for(let r=0;r<8;r++){
         for(let c=0;c<8;c++){
-            const geo=new THREE.BoxGeometry(1,0.2,1);
-            const mat=new THREE.MeshStandardMaterial({
-                color:(r+c)%2===0?0xf0d9b5:0xb58863
+            const geo = new THREE.BoxGeometry(1,0.25,1);
+            const mat = new THREE.MeshStandardMaterial({
+                color:(r+c)%2===0 ? 0xf0d9b5 : 0xb58863
             });
-            const sq=new THREE.Mesh(geo,mat);
+
+            const sq = new THREE.Mesh(geo,mat);
             sq.position.set(c-3.5,0,r-3.5);
             scene.add(sq);
         }
@@ -290,7 +178,6 @@ function render3D(){
 }
 
 startGame();
-
 </script>
 
 </body>
