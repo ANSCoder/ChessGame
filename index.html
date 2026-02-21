@@ -5,28 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chess Game</title>
     <style>
-        :root {
-            --main-bg-color: #f0f0f0;
-            --primary-color: #4CAF50;
-            --text-color: #333;
-            --font-family: Arial, sans-serif;
+        #chessBoard {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
         }
-        body {
-            background-color: var(--main-bg-color);
-            color: var(--text-color);
-            font-family: var(--font-family);
+        .whiteSquare {
+            background-color: white;
         }
-        h1, h2 {
-            color: var(--primary-color);
+        .blackSquare {
+            background-color: gray;
         }
-        /* Additional styles can go here */
+        .piece {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 40px;
+            line-height: 60px;
+        }
     </style>
 </head>
 <body>
-    <h1>Welcome to the Chess Game</h1>
-    <h2>Instruction</h2>
-    <div id="game"></div>
-    <!-- External script reference -->
-    <script src="scripts/game.js"></script>
+    <h1>Chess Game</h1>
+    <div id="chessBoard"></div>
+    <script>
+        const board = document.getElementById('chessBoard');
+        const pieces = {
+            'r': '♖', 'n': '♞', 'b': '♗', 'q': '♕', 'k': '♔', 'p': '♟',
+            'R': '♖', 'N': '♞', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+        };
+        const initialPositions = [
+            ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+            ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+            ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+        ];
+
+        function createBoard() {
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = (row + col) % 2 === 0 ? 'whiteSquare' : 'blackSquare';
+                    if (initialPositions[row][col]) {
+                        const piece = document.createElement('div');
+                        piece.className = 'piece';
+                        piece.innerHTML = pieces[initialPositions[row][col]];
+                        square.appendChild(piece);
+                    }
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        createBoard();
+    </script>
 </body>
 </html>
