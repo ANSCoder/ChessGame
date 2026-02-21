@@ -6,42 +6,27 @@
     <title>Chess Game</title>
     <style>
         :root {
+            --main-bg-color: #f0f0f0;
             --primary-color: #4CAF50;
-            --secondary-color: #fff;
-            --font-family: 'Arial', sans-serif;
-            --font-size: 16px;
-            --spacing: 10px;
+            --text-color: #333;
+            --font-family: Arial, sans-serif;
         }
         body {
-            margin: 0;
+            background-color: var(--main-bg-color);
+            color: var(--text-color);
             font-family: var(--font-family);
-            background-color: var(--secondary-color);
-            padding: var(--spacing);
         }
-        header {
-            background: var(--primary-color);
-            color: var(--secondary-color);
-            padding: var(--spacing);
-            text-align: center;
+        h1, h2 {
+            color: var(--primary-color);
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: var(--spacing);
-        }
-        @media (max-width: 600px) {
-            body {
-                font-size: 14px;
-            }
-        }
+        /* Additional styles can go here */
     </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to the Chess Game</h1>
-    </header>
-    <div class="container">
-        <p>This is an improved index file for the Chess Game project.</p>
-    </div>
+    <h1>Welcome to the Chess Game</h1>
+    <h2>Instruction</h2>
+    <div id="game"></div>
+    <!-- External script reference -->
+    <script src="scripts/game.js"></script>
 </body>
 </html>
