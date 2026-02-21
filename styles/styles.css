@@ -1,6 +1,4 @@
-/* ===============================
-    GLOBAL SETUP
-================================= */
+/* GLOBAL RESET */
 * {
     margin: 0;
     padding: 0;
@@ -8,114 +6,96 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #0f172a;
     color: white;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    min-height: 100vh;
 }
 
-/* ===============================
-    CONTROLS & STATUS
-================================= */
+h1 {
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #38bdf8;
+}
+
+/* BUTTONS AREA */
 .controls {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    background: rgba(255, 255, 255, 0.05);
+    gap: 15px;
+    margin-bottom: 30px;
     padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
 }
 
 .control-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
-    border-radius: 8px;
-    background: #334155;
-    color: white;
-    font-weight: 600;
+    border-radius: 6px;
+    font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
 }
 
-.control-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
-#startBtn { background: #22c55e; }
-#themeBtn { background: #f59e0b; }
+#startBtn { background-color: #22c55e; color: white; }
+#resetBtn { background-color: #ef4444; color: white; }
 
-.status-box {
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    background: rgba(255, 255, 255, 0.1);
-}
-.status-box.active { background: #22c55e; box-shadow: 0 0 15px #22c55e; }
-
-/* ===============================
-    THE 3D CHESS BOARD
-================================= */
-.board-wrapper {
-    perspective: 1500px;
-    padding: 60px;
+.control-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
+/* THE BOARD */
 .chess-board {
     display: grid;
-    grid-template-columns: repeat(8, 70px);
-    grid-template-rows: repeat(8, 70px);
-    border: 10px solid #1e293b;
-    box-shadow: 0 50px 100px rgba(0,0,0,0.7);
-    transform: rotateX(50deg) rotateZ(-10deg); /* Fixed 3D Perspective */
-    transform-style: preserve-3d;
+    grid-template-columns: repeat(8, 65px);
+    grid-template-rows: repeat(8, 65px);
+    border: 8px solid #1e293b;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 
 .square {
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
-    transform-style: preserve-3d;
+    font-size: 45px;
     cursor: pointer;
-    font-size: 0; /* Original text hide karne ke liye */
+    user-select: none;
 }
 
 .white-square { background-color: #f1f5f9; }
 .black-square { background-color: #64748b; }
 
-/* STANDING PIECE (The Goti) */
-.square::before {
-    content: attr(data-piece);
-    position: absolute;
-    bottom: 5px;
-    font-size: 3.5rem;
-    color: #000;
-    transform: rotateX(-90deg); /* Seedha khada karne ke liye */
-    transform-origin: bottom;
-    z-index: 10;
-    text-shadow: 0 1px 0 #ddd, 0 2px 0 #ccc, 0 10px 15px rgba(0,0,0,0.5);
-}
+/* HIGHLIGHTS */
+.square.selected { background-color: #fde047 !important; } /* Yellow */
+.square.last-move { background-color: rgba(34, 197, 94, 0.5) !important; } /* Green */
 
-.white-piece::before {
-    color: #fff !important;
-    text-shadow: 0 1px 0 #999, 0 2px 0 #888, 0 10px 15px rgba(0,0,0,0.3);
-}
+/* PIECES COLORS */
+.white-piece { color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.black-piece { color: #000000; }
 
-/* EFFECTS */
-.square.selected { background-color: #fbbf24 !important; }
-.square.last-move { background-color: rgba(255, 255, 0, 0.4) !important; }
-
-/* GAME OVER OVERLAY */
+/* OVERLAY */
 .game-over-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 9999;
+    background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+    align-items: center; z-index: 1000;
 }
+
 .winner-card {
-    background: white; color: #1e293b; padding: 40px; border-radius: 20px;
-    text-align: center;
+    background: white; color: #1e293b; padding: 40px; border-radius: 12px;
+    text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 550px) {
+    .chess-board { grid-template-columns: repeat(8, 11vw); grid-template-rows: repeat(8, 11vw); }
+    .square { width: 11vw; height: 11vw; font-size: 30px; }
 }
