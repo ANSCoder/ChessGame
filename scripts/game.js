@@ -36,23 +36,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     const piece = board[r][c];
                     
-                    // Render Piece
+                    // Render Piece Logic
                     if (piece) {
                         const key = piece.color === "w" ? piece.type.toUpperCase() : piece.type.toLowerCase();
-                        square.textContent = pieceMap[key];
+                        const pieceChar = pieceMap[key];
+                        
+                        square.textContent = pieceChar;
+                        
+                        // IMPORTANT: Yeh line CSS 3D ke liye pieces ko "khada" karti hai
+                        square.setAttribute("data-piece", pieceChar);
 
                         // King Danger Alert
                         if (piece.type === 'k' && piece.color === turn && game.in_check()) {
                             square.classList.add("check-alert");
                         }
+                    } else {
+                        // Agar khali square hai toh attribute hata dein
+                        square.removeAttribute("data-piece");
                     }
 
-                    // Highlight Selected Square
+                    // Highlight Selection
                     if (selectedSquare === squareName) {
                         square.classList.add("selected");
                     }
 
-                    // Highlight Last Move (For AI and Player)
+                    // Highlight Last Move
                     if (lastMove && (lastMove.from === squareName || lastMove.to === squareName)) {
                         square.classList.add("last-move");
                     }
@@ -66,9 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function highlightLegalMoves(squareName) {
-            // Remove previous dots
             document.querySelectorAll(".square").forEach(s => s.classList.remove("legal-move"));
-            
             const moves = game.moves({ square: squareName, verbose: true });
             moves.forEach(move => {
                 const el = document.querySelector(`[data-square="${move.to}"]`);
@@ -79,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
         function handleClick(squareName) {
             const piece = game.get(squareName);
 
-            // 1. Select Player Piece (White)
+            // 1. Select Player Piece
             if (piece && piece.color === "w") {
                 selectedSquare = squareName;
                 renderBoard(); 
@@ -99,15 +105,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     playMoveSound(move);
                     triggerCaptureAnimation(squareName);
                     selectedSquare = null;
-                    
-                    // Render board with last move highlight
                     renderBoard(move); 
                     
                     if (!game.game_over()) {
                         setTimeout(aiMove, 600);
                     }
                 } else {
-                    // Invalid click - Reset selection
                     selectedSquare = null;
                     renderBoard();
                 }
@@ -117,25 +120,17 @@ document.addEventListener("DOMContentLoaded", () => {
         function aiMove() {
             const moves = game.moves();
             if (moves.length > 0) {
-                // Easy: Random move | Medium/Hard: Aap yahan minimax add kar sakte hain
                 const move = game.move(moves[Math.floor(Math.random() * moves.length)]);
-                
                 playMoveSound(move);
                 triggerCaptureAnimation(move.to);
-                
-                // AI move ko highlight karne ke liye renderBoard mein pass karein
-                renderBoard(move);
+                renderBoard(move); 
             }
         }
 
         function playMoveSound(move) {
-            if (game.in_check()) {
-                checkSound.play();
-            } else if (move.captured) {
-                captureSound.play();
-            } else {
-                moveSound.play();
-            }
+            if (game.in_check()) checkSound.play();
+            else if (move.captured) captureSound.play();
+            else moveSound.play();
         }
 
         function triggerCaptureAnimation(sq) {
@@ -165,9 +160,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     status = `CHECKMATE! ${winner} WINS`;
                     if(winner === "YOU") launchFireworks();
                 } else {
-                    status = "GAME OVER - DRAW / STALEMATE";
+                    status = "GAME OVER - DRAW";
                 }
 
+                // Game Over Overlay
                 const overlay = document.createElement("div");
                 overlay.className = "game-over-overlay";
                 overlay.innerHTML = `
@@ -182,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function launchFireworks() {
-            for(let i=0; i<40; i++) {
+            for(let i=0; i<30; i++) {
                 setTimeout(() => {
                     const f = document.createElement("div");
                     f.className = "firework";
@@ -191,38 +187,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     f.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
                     document.body.appendChild(f);
                     setTimeout(() => f.remove(), 1200);
-                }, i * 150);
+                }, i * 200);
             }
         }
 
         // --- BUTTON HANDLERS ---
-        document.getElementById("resetBtn").onclick = () => { 
-            game.reset(); 
-            selectedSquare = null; 
-            renderBoard(); 
-        };
-        document.getElementById("startBtn").onclick = () => { 
-            game.reset(); 
-            selectedSquare = null; 
-            renderBoard(); 
-        };
+        document.getElementById("resetBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
+        document.getElementById("startBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
         document.getElementById("themeBtn").onclick = () => document.body.classList.toggle("light-mode");
         
-        // Mode toggle logic
         document.getElementById("modeBtn").onclick = () => {
             document.body.classList.toggle("mode-3d");
-            renderBoard(); // Re-render to ensure 3D classes apply correctly
+            renderBoard(); // Layout refresh ke liye
         };
 
-        document.querySelectorAll(".level-btn").forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll(".level-btn").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
-                level = btn.getAttribute("data-level");
-            };
-        });
-
-        renderBoard(); // Initial render
+        renderBoard(); 
     };
 
     const script = document.createElement('script');
