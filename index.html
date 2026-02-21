@@ -6,14 +6,16 @@
 <title>♛ CHESS ♛</title>
 
 <link rel="stylesheet" href="styles/styles.css">
-</head>
 
+<!-- WORKING CDN VERSION -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+
+</head>
 <body>
 
 <h1 class="title">♛ CHESS ♛</h1>
 
 <div class="controls">
-
     <button id="startBtn" class="control-btn">Start</button>
     <button id="resetBtn" class="control-btn">Reset</button>
 
@@ -25,14 +27,12 @@
 
     <button id="themeBtn" class="control-btn">Dark / Light</button>
     <button id="modeBtn" class="control-btn">2D / 3D</button>
-
 </div>
 
 <div class="board-wrapper">
     <div id="chessBoard" class="chess-board"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
 <script src="scripts/game.js"></script>
 
 </body>
