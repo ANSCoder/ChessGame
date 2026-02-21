@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>♛ CHESS ♛</title>
 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/styles.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
@@ -18,15 +19,13 @@
         <button id="startBtn" class="control-btn">Start</button>
         <button id="resetBtn" class="control-btn">Reset</button>
 
-        <div class="level-group">
-            <button class="control-btn level-btn active" data-level="easy">Easy</button>
-            <button class="control-btn level-btn" data-level="medium">Medium</button>
-            <button class="control-btn level-btn" data-level="hard">Hard</button>
-        </div>
+        <button id="easy" class="control-btn diff-btn active">Easy</button>
+        <button id="medium" class="control-btn diff-btn">Medium</button>
+        <button id="hard" class="control-btn diff-btn">Hard</button>
 
         <button id="themeBtn" class="control-btn">Dark / Light</button>
-        <button id="modeBtn" class="control-btn">2D / 3D</button>
-    </div>
+        
+        </div>
 
     <div class="board-wrapper">
         <div id="chessBoard" class="chess-board"></div>
