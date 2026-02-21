@@ -1,15 +1,18 @@
+console.log("Chess Game script initialized!");
+
 document.addEventListener("DOMContentLoaded", () => {
-    // Check if Chess is loaded
+    
+    // Agar ye alert nahi aata, toh aapka 'src' path galat hai
+    console.log("DOM is ready!");
+
     if (typeof Chess === 'undefined') {
-        console.error("Chess library not loaded! Check your internet or HTML script tag.");
+        alert("Chess library load nahi hui! HTML check karein.");
         return;
     }
 
     const game = new Chess(); 
     const boardElement = document.getElementById("chessBoard");
-
     let selectedSquare = null;
-    let level = "easy";
 
     const pieceMap = {
         p:'♟', r:'♜', n:'♞', b:'♝', q:'♛', k:'♚',
@@ -17,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     function renderBoard() {
+        if (!boardElement) return;
         boardElement.innerHTML = "";
         const board = game.board();
 
@@ -24,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
             for (let c = 0; c < 8; c++) {
                 const square = document.createElement("div");
                 square.className = "square " + ((r + c) % 2 === 0 ? "white-square" : "black-square");
-
+                
                 const squareName = String.fromCharCode(97 + c) + (8 - r);
                 const piece = board[r][c];
 
@@ -34,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if (selectedSquare === squareName) square.classList.add("selected");
-
+                
                 square.onclick = () => handleClick(squareName);
                 boardElement.appendChild(square);
             }
@@ -43,8 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function handleClick(squareName) {
         const piece = game.get(squareName);
-
-        // Agar white turn hai aur apna piece select kiya
         if (piece && piece.color === "w") {
             selectedSquare = squareName;
             renderBoard();
@@ -52,33 +54,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (selectedSquare) {
-            const move = game.move({
-                from: selectedSquare,
-                to: squareName,
-                promotion: "q"
-            });
-
+            const move = game.move({ from: selectedSquare, to: squareName, promotion: "q" });
             selectedSquare = null;
-
-            if (move) {
-                renderBoard();
-                if (!game.game_over()) {
-                    setTimeout(aiMove, 300);
-                } else {
-                    alert("Game Over!");
-                }
-            } else {
-                renderBoard();
-            }
+            renderBoard();
+            if (move && !game.game_over()) setTimeout(aiMove, 300);
         }
     }
 
     function aiMove() {
         const moves = game.moves();
-        if (moves.length === 0) return;
-        const randomMove = moves[Math.floor(Math.random() * moves.length)];
-        game.move(randomMove);
-        renderBoard();
+        if (moves.length > 0) {
+            game.move(moves[Math.floor(Math.random() * moves.length)]);
+            renderBoard();
+        }
     }
 
     renderBoard();
