@@ -1,145 +1,163 @@
 /* ===============================
-   GLOBAL RESET
+   GLOBAL RESET & FONTS
 ================================= */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* ===============================
-   BODY
-================================= */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: radial-gradient(circle at top, #2c3e50, #1b2838 70%);
-  color: white;
-  text-align: center;
-  min-height: 100vh;
-  transition: background 0.4s ease;
-  overflow-x: hidden;
-  padding: 20px;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    /* Deep Modern Gradient */
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    color: white;
+    text-align: center;
+    min-height: 100vh;
+    transition: all 0.5s ease;
+    padding: 20px;
 }
 
+/* Light Mode: Professional Soft Grey */
 body.light-mode {
-  background: radial-gradient(circle at top, #f5f5f5, #dcdcdc 70%);
-  color: #222;
+    background: radial-gradient(circle at center, #f8fafc 0%, #e2e8f0 100%);
+    color: #0f172a;
 }
 
 /* ===============================
-   CONTROLS & BUTTONS
+   TITLE STYLING
 ================================= */
 .title {
-  margin-bottom: 20px;
-  font-size: 2.5rem;
-  text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
+    font-size: 3rem;
+    letter-spacing: 5px;
+    background: linear-gradient(to right, #60a5fa, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 5px 15px rgba(96, 165, 250, 0.4));
 }
 
+/* ===============================
+   MODERN NEON CONTROLS
+================================= */
 .controls {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 40px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 50px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .control-btn {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  background: #34495e;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 0 #2c3e50;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    background: #334155;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-transform: uppercase;
 }
 
 .control-btn:hover {
-  transform: translateY(-2px);
-  background: #465f77;
+    transform: translateY(-5px);
+    filter: brightness(1.2);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
-.control-btn:active {
-  transform: translateY(0px);
-  box-shadow: 0 2px 0 #2c3e50;
-}
+/* Specific Button Colors */
+#startBtn { background: linear-gradient(135deg, #22c55e, #16a34a); }
+#themeBtn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+#modeBtn { background: linear-gradient(135deg, #6366f1, #4f46e5); }
 
-#startBtn { background: #27ae60; box-shadow: 0 4px 0 #1e8449; }
-#startBtn:hover { background: #2ecc71; }
-
+/* Level Buttons Style */
 .level-btn.active {
-  background: #e67e22 !important;
-  box-shadow: 0 4px 0 #d35400 !important;
+    background: #ef4444 !important;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6) !important;
+    transform: scale(1.1);
 }
 
 /* ===============================
-   CHESS BOARD
+   MODERN CHESS BOARD
 ================================= */
 .board-wrapper {
-  display: flex;
-  justify-content: center;
-  perspective: 1200px; /* Crucial for 3D effect */
-  margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    perspective: 1500px;
+    margin-top: 10px;
 }
 
 .chess-board {
-  display: grid;
-  grid-template-columns: repeat(8, 70px);
-  grid-template-rows: repeat(8, 70px);
-  border: 5px solid #333;
-  border-radius: 4px;
-  box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #333;
+    display: grid;
+    grid-template-columns: repeat(8, 75px);
+    grid-template-rows: repeat(8, 75px);
+    border: 12px solid #1e293b;
+    border-radius: 8px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+    transition: transform 0.8s ease;
+    background: #000;
 }
 
 .square {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 3rem; /* Larger pieces */
-  cursor: pointer;
-  user-select: none;
-  position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3.5rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
 }
 
-.white-square { background: #f0d9b5; color: #222; }
-.black-square { background: #b58863; color: #fff; }
+/* Modern Board Colors: Slate & Cream */
+.white-square { background-color: #e2e8f0; color: #1e293b; }
+.black-square { background-color: #475569; color: #f8fafc; }
 
-/* FIX: Selected state using background instead of outline for 3D compatibility */
+/* Selection Highlight: Glow Effect */
 .square.selected {
-  background: #7ef17e !important;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+    background-color: #fbbf24 !important;
+    box-shadow: inset 0 0 20px rgba(255,255,255,0.5);
+    animation: pulse 1.5s infinite;
 }
 
-.square:hover {
-  filter: brightness(1.1);
+@keyframes pulse {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+    100% { filter: brightness(1); }
 }
 
 /* ===============================
-   3D MODE
+   3D MODE: Cinematic View
 ================================= */
 body.mode-3d .chess-board {
-  transform: rotateX(35deg) rotateZ(0deg);
-  box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+    transform: rotateX(45deg) rotateZ(-10deg) translateY(-50px);
 }
 
-/* Make pieces stand up slightly in 3D */
 body.mode-3d .square {
-    /* This creates a subtle parallax for the unicode symbols */
-    text-shadow: 0 5px 5px rgba(0,0,0,0.3);
+    /* Shadow for pieces in 3D */
+    text-shadow: 2px 8px 5px rgba(0,0,0,0.4);
 }
 
 /* ===============================
-   RESPONSIVE
+   RESPONSIVE (Mobile Ready)
 ================================= */
-@media (max-width: 650px) {
-  .chess-board {
-    grid-template-columns: repeat(8, 11vw);
-    grid-template-rows: repeat(8, 11vw);
-  }
-  .square {
-    font-size: 1.8rem;
-  }
+@media (max-width: 700px) {
+    .chess-board {
+        grid-template-columns: repeat(8, 11vw);
+        grid-template-rows: repeat(8, 11vw);
+        border-width: 6px;
+    }
+    .square { font-size: 2.2rem; }
+    .title { font-size: 2rem; }
+    .controls { gap: 8px; padding: 10px; }
+    .control-btn { padding: 8px 14px; font-size: 0.7rem; }
 }
