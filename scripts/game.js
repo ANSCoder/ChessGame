@@ -90,3 +90,47 @@ document.addEventListener("DOMContentLoaded", () => {
     script.onload = startChessGame;
     document.head.appendChild(script);
 });
+
+/* ===============================
+   BUTTON CONTROLS (Final Fix)
+=============================== */
+
+// 1. Start & Reset functionality
+const resetHandler = () => {
+    game.reset();
+    selectedSquare = null;
+    renderBoard();
+    console.log("Game Restarted");
+};
+
+if(document.getElementById("startBtn")) document.getElementById("startBtn").onclick = resetHandler;
+if(document.getElementById("resetBtn")) document.getElementById("resetBtn").onclick = resetHandler;
+
+// 2. Theme Toggle (Dark/Light)
+if(document.getElementById("themeBtn")) {
+    document.getElementById("themeBtn").onclick = () => {
+        document.body.classList.toggle("light-mode");
+    };
+}
+
+// 3. 2D / 3D Mode Toggle
+if(document.getElementById("modeBtn")) {
+    document.getElementById("modeBtn").onclick = () => {
+        document.body.classList.toggle("mode-3d");
+    };
+}
+
+// 4. Level Buttons (Easy, Medium, Hard)
+document.querySelectorAll(".level-btn").forEach(btn => {
+    btn.onclick = () => {
+        // Remove 'active' class from all level buttons
+        document.querySelectorAll(".level-btn").forEach(b => b.classList.remove("active"));
+        
+        // Add 'active' to clicked button
+        btn.classList.add("active");
+        
+        // Set the global level variable
+        level = btn.getAttribute("data-level");
+        console.log("Difficulty set to: " + level);
+    };
+});
