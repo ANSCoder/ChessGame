@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         square.classList.add("selected");
                     }
 
-                    // Highlight Last Move
+                    // Highlight Last Move (For AI and Player)
                     if (lastMove && (lastMove.from === squareName || lastMove.to === squareName)) {
                         square.classList.add("last-move");
                     }
@@ -79,11 +79,11 @@ document.addEventListener("DOMContentLoaded", () => {
         function handleClick(squareName) {
             const piece = game.get(squareName);
 
-            // 1. Select Player Piece
+            // 1. Select Player Piece (White)
             if (piece && piece.color === "w") {
                 selectedSquare = squareName;
-                renderBoard(); // Normal render
-                highlightLegalMoves(squareName); // Add dots
+                renderBoard(); 
+                highlightLegalMoves(squareName);
                 return;
             }
 
@@ -99,7 +99,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     playMoveSound(move);
                     triggerCaptureAnimation(squareName);
                     selectedSquare = null;
-                    renderBoard(move); // Pass move to highlight it
+                    
+                    // Render board with last move highlight
+                    renderBoard(move); 
                     
                     if (!game.game_over()) {
                         setTimeout(aiMove, 600);
@@ -115,11 +117,14 @@ document.addEventListener("DOMContentLoaded", () => {
         function aiMove() {
             const moves = game.moves();
             if (moves.length > 0) {
+                // Easy: Random move | Medium/Hard: Aap yahan minimax add kar sakte hain
                 const move = game.move(moves[Math.floor(Math.random() * moves.length)]);
                 
                 playMoveSound(move);
                 triggerCaptureAnimation(move.to);
-                renderBoard(move); // Highlight AI move
+                
+                // AI move ko highlight karne ke liye renderBoard mein pass karein
+                renderBoard(move);
             }
         }
 
@@ -202,7 +207,12 @@ document.addEventListener("DOMContentLoaded", () => {
             renderBoard(); 
         };
         document.getElementById("themeBtn").onclick = () => document.body.classList.toggle("light-mode");
-        document.getElementById("modeBtn").onclick = () => document.body.classList.toggle("mode-3d");
+        
+        // Mode toggle logic
+        document.getElementById("modeBtn").onclick = () => {
+            document.body.classList.toggle("mode-3d");
+            renderBoard(); // Re-render to ensure 3D classes apply correctly
+        };
 
         document.querySelectorAll(".level-btn").forEach(btn => {
             btn.onclick = () => {
@@ -212,10 +222,9 @@ document.addEventListener("DOMContentLoaded", () => {
             };
         });
 
-        renderBoard(); // First render
+        renderBoard(); // Initial render
     };
 
-    // Library Injection
     const script = document.createElement('script');
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js";
     script.onload = startChessGame;
