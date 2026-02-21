@@ -1,105 +1,168 @@
-:root {
-  --bg-dark: linear-gradient(135deg,#141e30,#243b55);
-  --bg-light: linear-gradient(135deg,#f4f4f4,#dddddd);
+/* ===============================
+   GLOBAL
+================================= */
 
-  --light-square:#f0d9b5;
-  --dark-square:#b58863;
-
-  --accent:#4CAF50;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  margin:0;
-  font-family:'Segoe UI',sans-serif;
-  background:var(--bg-dark);
-  color:white;
-  text-align:center;
-  transition:all 0.4s ease;
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #2c3e50, #1b2838 70%);
+  color: white;
+  text-align: center;
+  min-height: 100vh;
+  padding-bottom: 60px;
+  transition: background 0.4s ease;
 }
 
 body.light-mode {
-  background:var(--bg-light);
-  color:#222;
+  background: radial-gradient(circle at top, #f5f5f5, #dcdcdc 70%);
+  color: #222;
 }
+
+/* ===============================
+   TITLE
+================================= */
 
 .title {
-  margin-top:20px;
-  font-size:32px;
-  letter-spacing:2px;
+  margin: 30px 0;
+  font-size: 2.5rem;
+  letter-spacing: 3px;
 }
 
-/* CONTROLS */
+/* ===============================
+   CONTROLS
+================================= */
 
 .controls {
-  margin:20px auto;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 30px;
 }
 
-button {
-  padding:10px 16px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  background:var(--accent);
-  color:white;
-  font-weight:600;
-  cursor:pointer;
-  transition:0.3s;
+/* Uniform Button Style */
+
+.control-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: #4CAF50;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
 
-button:hover {
-  transform:translateY(-2px);
-  box-shadow:0 5px 15px rgba(0,0,0,0.3);
+.control-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
 }
 
-/* BOARD */
+body.light-mode .control-btn {
+  background: #2ecc71;
+  color: #111;
+}
+
+/* Level Buttons */
+
+.level-group {
+  display: flex;
+  gap: 10px;
+}
+
+.level-btn.active {
+  background: #2ecc71;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
+}
+
+/* ===============================
+   BOARD WRAPPER
+================================= */
+
+.board-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+/* ===============================
+   CHESS BOARD
+================================= */
 
 .chess-board {
-  display:grid;
-  grid-template-columns:repeat(8,1fr);
-  grid-template-rows:repeat(8,1fr);
-  width:100%;
-  max-width:600px;
-  aspect-ratio:1;
-  margin:30px auto;
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:0 20px 40px rgba(0,0,0,0.5);
+  display: grid;
+  grid-template-columns: repeat(8, 80px);
+  grid-template-rows: repeat(8, 80px);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow:
+    0 30px 60px rgba(0,0,0,0.6),
+    inset 0 0 40px rgba(0,0,0,0.3);
+  transition: transform 0.4s ease;
 }
+
+/* Wooden Theme */
+
+.white-square {
+  background: #f0d9b5;
+}
+
+.black-square {
+  background: #b58863;
+}
+
+/* ===============================
+   PIECES
+================================= */
 
 .square {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:2.2rem;
-  cursor:pointer;
-  transition:0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.6rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  text-shadow: 0 3px 6px rgba(0,0,0,0.6);
 }
-
-.white-square { background:var(--light-square); }
-.black-square { background:var(--dark-square); }
 
 .square:hover {
-  filter:brightness(1.1);
-  transform:scale(1.05);
+  filter: brightness(1.1);
 }
 
-@media(max-width:600px){
-  .square { font-size:1.6rem; }
+/* Selected square */
+
+.selected {
+  outline: 3px solid #4CAF50;
+  box-shadow: inset 0 0 15px rgba(76,175,80,0.7);
 }
 
-/* ===== Cinematic Capture ===== */
+/* ===============================
+   3D MODE
+================================= */
+
+body.mode-3d .chess-board {
+  transform: perspective(1200px) rotateX(40deg) rotateZ(3deg);
+}
+
+/* ===============================
+   CINEMATIC CAPTURE
+================================= */
+
 .capture-explode {
   animation: explode 0.4s ease forwards;
 }
 
 @keyframes explode {
   0%   { transform: scale(1); opacity: 1; }
-  40%  { transform: scale(1.4) rotate(15deg); }
-  70%  { transform: scale(1.1) rotate(-10deg); }
+  50%  { transform: scale(1.4) rotate(15deg); }
   100% { transform: scale(0); opacity: 0; }
 }
 
-/* Screen Shake */
 .screen-shake {
   animation: shake 0.3s;
 }
@@ -110,4 +173,19 @@ button:hover {
   50% { transform: translateX(6px); }
   75% { transform: translateX(-6px); }
   100% { transform: translateX(0); }
+}
+
+/* ===============================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 768px) {
+  .chess-board {
+    grid-template-columns: repeat(8, 50px);
+    grid-template-rows: repeat(8, 50px);
+  }
+
+  .square {
+    font-size: 1.8rem;
+  }
 }
