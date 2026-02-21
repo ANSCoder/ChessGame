@@ -1,11 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // FIX: Access the Chess constructor correctly from the window object
+    // FIX: Chess.js v0.13.4 ke liye constructor aise call hota hai
     const game = new Chess.Chess(); 
     const boardElement = document.getElementById("chessBoard");
 
     let selectedSquare = null;
     let level = "easy";
 
+    // Unicode pieces for rendering
     const pieceMap = {
         p:'♟', r:'♜', n:'♞', b:'♝', q:'♛', k:'♚',
         P:'♙', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔'
@@ -24,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const piece = board[r][c];
 
                 if (piece) {
-                    // Correctly mapping piece types to Unicode
+                    // Piece logic: White is UpperCase, Black is LowerCase
                     const key = piece.color === "w" ? piece.type.toUpperCase() : piece.type.toLowerCase();
                     square.textContent = pieceMap[key];
                 }
@@ -44,14 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const piece = game.get(squareName);
 
-        // If clicking a new white piece, just change selection
+        // Agar white piece par click kiya toh select karo
         if (piece && piece.color === "w") {
             selectedSquare = squareName;
             renderBoard();
             return;
         }
 
-        // If a piece was selected and we click a target square
+        // Agar pehle se selected hai aur move kar rahe ho
         if (selectedSquare) {
             const move = game.move({
                 from: selectedSquare,
@@ -66,11 +67,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!game.game_over()) {
                     setTimeout(aiMove, 300);
                 } else {
-                    alert("Game Over!");
+                    checkGameOver();
                 }
             } else {
-                // Invalid move
-                renderBoard();
+                renderBoard(); // Invalid move par reset selection
             }
         }
     }
@@ -86,14 +86,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const captures = moves.filter(m => m.captured);
             move = captures.length ? captures[Math.floor(Math.random() * captures.length)] : moves[Math.floor(Math.random() * moves.length)];
         } else {
-            // Hard: Simple piece value capture
             const captures = moves.filter(m => m.captured).sort((a, b) => pieceValue(b.captured) - pieceValue(a.captured));
             move = captures.length ? captures[0] : moves[Math.floor(Math.random() * moves.length)];
         }
 
         game.move(move);
         renderBoard();
-        if (game.game_over()) alert("Game Over!");
+        if (game.game_over()) checkGameOver();
     }
 
     function pieceValue(p) {
@@ -101,7 +100,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return values[p] || 0;
     }
 
-    // Controls
+    function checkGameOver() {
+        if (game.in_checkmate()) alert("Checkmate! Game Over.");
+        else if (game.in_draw()) alert("Draw! Game Over.");
+        else alert("Game Over!");
+    }
+
+    // Button Controls
     document.getElementById("startBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
     document.getElementById("resetBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
     document.getElementById("themeBtn").onclick = () => document.body.classList.toggle("light-mode");
