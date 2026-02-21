@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let selectedSquare = null;
         let level = "easy";
 
-        // Sound Effects
+        // --- AUDIO ASSETS ---
         const moveSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
         const captureSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3');
         const checkSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3');
@@ -20,7 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
             P:'♙', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔'
         };
 
-        function renderBoard() {
+        // --- CORE FUNCTIONS ---
+        function renderBoard(lastMove = null) {
             if (!boardElement) return;
             boardElement.innerHTML = "";
             const board = game.board();
@@ -40,15 +41,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         const key = piece.color === "w" ? piece.type.toUpperCase() : piece.type.toLowerCase();
                         square.textContent = pieceMap[key];
 
-                        // Highlight King if in Check
+                        // King Danger Alert
                         if (piece.type === 'k' && piece.color === turn && game.in_check()) {
                             square.classList.add("check-alert");
                         }
                     }
 
-                    // Highlight Selection
+                    // Highlight Selected Square
                     if (selectedSquare === squareName) {
                         square.classList.add("selected");
+                    }
+
+                    // Highlight Last Move
+                    if (lastMove && (lastMove.from === squareName || lastMove.to === squareName)) {
+                        square.classList.add("last-move");
                     }
 
                     square.onclick = () => handleClick(squareName);
@@ -60,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function highlightLegalMoves(squareName) {
-            // Remove old highlights
+            // Remove previous dots
             document.querySelectorAll(".square").forEach(s => s.classList.remove("legal-move"));
             
             const moves = game.moves({ square: squareName, verbose: true });
@@ -73,15 +79,15 @@ document.addEventListener("DOMContentLoaded", () => {
         function handleClick(squareName) {
             const piece = game.get(squareName);
 
-            // Select White Piece
+            // 1. Select Player Piece
             if (piece && piece.color === "w") {
                 selectedSquare = squareName;
-                renderBoard();
-                highlightLegalMoves(squareName);
+                renderBoard(); // Normal render
+                highlightLegalMoves(squareName); // Add dots
                 return;
             }
 
-            // Attempt Move
+            // 2. Try to Move
             if (selectedSquare) {
                 const move = game.move({ 
                     from: selectedSquare, 
@@ -90,23 +96,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 
                 if (move) {
-                    if (move.captured) {
-                        captureSound.play();
-                        triggerCaptureAnimation(squareName);
-                    } else {
-                        moveSound.play();
-                    }
-
-                    if (game.in_check()) checkSound.play();
-
+                    playMoveSound(move);
+                    triggerCaptureAnimation(squareName);
                     selectedSquare = null;
-                    renderBoard();
+                    renderBoard(move); // Pass move to highlight it
                     
                     if (!game.game_over()) {
                         setTimeout(aiMove, 600);
                     }
                 } else {
-                    // Invalid move - deselect
+                    // Invalid click - Reset selection
                     selectedSquare = null;
                     renderBoard();
                 }
@@ -116,26 +115,31 @@ document.addEventListener("DOMContentLoaded", () => {
         function aiMove() {
             const moves = game.moves();
             if (moves.length > 0) {
-                // Random move for 'easy', could be smarter for other levels
                 const move = game.move(moves[Math.floor(Math.random() * moves.length)]);
                 
-                if (move.captured) {
-                    captureSound.play();
-                    triggerCaptureAnimation(move.to);
-                } else {
-                    moveSound.play();
-                }
+                playMoveSound(move);
+                triggerCaptureAnimation(move.to);
+                renderBoard(move); // Highlight AI move
+            }
+        }
 
-                if (game.in_check()) checkSound.play();
-                
-                renderBoard();
+        function playMoveSound(move) {
+            if (game.in_check()) {
+                checkSound.play();
+            } else if (move.captured) {
+                captureSound.play();
+            } else {
+                moveSound.play();
             }
         }
 
         function triggerCaptureAnimation(sq) {
             setTimeout(() => {
                 const el = document.querySelector(`[data-square="${sq}"]`);
-                if(el) el.classList.add("captured-effect");
+                if(el) {
+                    el.classList.add("captured-effect");
+                    setTimeout(() => el.classList.remove("captured-effect"), 500);
+                }
             }, 10);
         }
 
@@ -155,19 +159,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     const winner = game.turn() === 'w' ? "BLACK AI" : "YOU";
                     status = `CHECKMATE! ${winner} WINS`;
                     if(winner === "YOU") launchFireworks();
-                } else if (game.in_draw()) {
-                    status = "GAME OVER - IT'S A DRAW";
-                } else if (game.in_stalemate()) {
-                    status = "STALEMATE - DRAW";
+                } else {
+                    status = "GAME OVER - DRAW / STALEMATE";
                 }
 
                 const overlay = document.createElement("div");
                 overlay.className = "game-over-overlay";
                 overlay.innerHTML = `
                     <div class="winner-card">
-                        <h1 style="font-size:4rem">🏆</h1>
-                        <h2>${status}</h2>
-                        <button onclick="location.reload()" class="control-btn" style="margin-top:20px; background:#22c55e">PLAY AGAIN</button>
+                        <h1 style="font-size:4rem; margin-bottom:10px;">🏆</h1>
+                        <h2 style="color:#1e293b;">${status}</h2>
+                        <button onclick="location.reload()" class="control-btn" style="margin-top:25px; background:#22c55e; padding: 15px 30px;">PLAY AGAIN</button>
                     </div>
                 `;
                 document.body.appendChild(overlay);
@@ -188,9 +190,17 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // --- BUTTONS ---
-        document.getElementById("resetBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
-        document.getElementById("startBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
+        // --- BUTTON HANDLERS ---
+        document.getElementById("resetBtn").onclick = () => { 
+            game.reset(); 
+            selectedSquare = null; 
+            renderBoard(); 
+        };
+        document.getElementById("startBtn").onclick = () => { 
+            game.reset(); 
+            selectedSquare = null; 
+            renderBoard(); 
+        };
         document.getElementById("themeBtn").onclick = () => document.body.classList.toggle("light-mode");
         document.getElementById("modeBtn").onclick = () => document.body.classList.toggle("mode-3d");
 
@@ -202,9 +212,10 @@ document.addEventListener("DOMContentLoaded", () => {
             };
         });
 
-        renderBoard();
+        renderBoard(); // First render
     };
 
+    // Library Injection
     const script = document.createElement('script');
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js";
     script.onload = startChessGame;
