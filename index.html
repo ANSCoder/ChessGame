@@ -3,29 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHESS</title>
+<title>♛ CHESS ♛</title>
 
 <link rel="stylesheet" href="style.css">
 
-<!-- Libraries must load BEFORE our script -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 </head>
+
 <body>
 
 <h1 class="title">♛ CHESS ♛</h1>
 
 <div class="controls">
-    <button onclick="startGame()">Start</button>
-    <button onclick="resetGame()">Reset</button>
-    <button onclick="toggleTheme()">Toggle Dark/Light</button>
-    <button onclick="toggleMode()">2D / 3D</button>
+    <button id="startBtn">Start</button>
+    <button id="resetBtn">Reset</button>
+    <button id="themeBtn">Toggle Dark/Light</button>
+    <button id="modeBtn">2D / 3D</button>
 </div>
 
 <div id="chessBoard" class="chess-board"></div>
 
 <script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
 let game = new Chess();
 let selectedSquare = null;
 let mode = "2D";
@@ -37,10 +39,6 @@ const pieceMap = {
   P:'♙', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔'
 };
 
-/* ======================
-   START / RESET
-====================== */
-
 function startGame(){
     game.reset();
     render();
@@ -50,9 +48,14 @@ function resetGame(){
     startGame();
 }
 
-/* ======================
-   RENDER
-====================== */
+function toggleTheme(){
+    document.body.classList.toggle("light-mode");
+}
+
+function toggleMode(){
+    mode = mode === "2D" ? "3D" : "2D";
+    render();
+}
 
 function render(){
     if(mode === "2D") render2D();
@@ -67,7 +70,7 @@ function render2D(){
         for(let c=0;c<8;c++){
             const square = document.createElement("div");
             square.classList.add("square");
-            square.classList.add((r+c)%2===0 ? "white-square":"black-square");
+            square.classList.add((r+c)%2===0?"white-square":"black-square");
             square.dataset.square = String.fromCharCode(97+c)+(8-r);
 
             const piece = board[r][c];
@@ -91,16 +94,16 @@ function handleClick(e){
 
     if(selectedSquare){
         const move = game.move({
-            from: selectedSquare,
-            to: square,
-            promotion: "q"
+            from:selectedSquare,
+            to:square,
+            promotion:"q"
         });
 
         selectedSquare = null;
 
         if(move){
             render();
-            setTimeout(aiMove, 300);
+            setTimeout(aiMove,300);
         } else {
             render();
         }
@@ -110,74 +113,26 @@ function handleClick(e){
     selectedSquare = square;
 }
 
-/* ======================
-   SIMPLE AI (Stable)
-====================== */
-
 function aiMove(){
     const moves = game.moves({verbose:true});
-    if(moves.length === 0) return;
-
+    if(!moves.length) return;
     const randomMove = moves[Math.floor(Math.random()*moves.length)];
     game.move(randomMove);
     render();
 }
 
-/* ======================
-   THEME TOGGLE
-====================== */
-
-function toggleTheme(){
-    document.body.classList.toggle("light-mode");
-}
-
-/* ======================
-   3D MODE
-====================== */
-
-function toggleMode(){
-    mode = mode === "2D" ? "3D" : "2D";
-    render();
-}
-
 function render3D(){
-    boardElement.innerHTML = "";
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75,1,0.1,1000);
-    const renderer = new THREE.WebGLRenderer({antialias:true});
-
-    renderer.setSize(600,600);
-    boardElement.appendChild(renderer.domElement);
-
-    camera.position.set(0,10,10);
-    camera.lookAt(0,0,0);
-
-    const light = new THREE.DirectionalLight(0xffffff,1);
-    light.position.set(5,10,5);
-    scene.add(light);
-
-    for(let r=0;r<8;r++){
-        for(let c=0;c<8;c++){
-            const geo = new THREE.BoxGeometry(1,0.25,1);
-            const mat = new THREE.MeshStandardMaterial({
-                color:(r+c)%2===0 ? 0xf0d9b5 : 0xb58863
-            });
-
-            const sq = new THREE.Mesh(geo,mat);
-            sq.position.set(c-3.5,0,r-3.5);
-            scene.add(sq);
-        }
-    }
-
-    function animate(){
-        requestAnimationFrame(animate);
-        renderer.render(scene,camera);
-    }
-    animate();
+    boardElement.innerHTML = "<p>3D Mode Enabled (Board hidden for now)</p>";
 }
+
+document.getElementById("startBtn").onclick = startGame;
+document.getElementById("resetBtn").onclick = resetGame;
+document.getElementById("themeBtn").onclick = toggleTheme;
+document.getElementById("modeBtn").onclick = toggleMode;
 
 startGame();
+
+});
 </script>
 
 </body>
