@@ -16,21 +16,18 @@ class Board {
         ];
     }
 
-    movePiece(fromRow, fromCol, toRow, toCol) {
-        this.squares[toRow][toCol] = this.squares[fromRow][fromCol];
-        this.squares[fromRow][fromCol] = null;
+    movePiece(fr, fc, tr, tc) {
+        this.squares[tr][tc] = this.squares[fr][fc];
+        this.squares[fr][fc] = null;
     }
 }
 
 class MoveValidator {
-    validateMove(board, fromRow, fromCol, toRow, toCol) {
-        if (toRow < 0 || toRow > 7 || toCol < 0 || toCol > 7) return false;
-        if (fromRow === toRow && fromCol === toCol) return false;
-
-        const piece = board[fromRow][fromCol];
-        if (!piece) return false;
-
-        return true; // basic free movement
+    validateMove(board, fr, fc, tr, tc) {
+        if (tr < 0 || tr > 7 || tc < 0 || tc > 7) return false;
+        if (fr === tr && fc === tc) return false;
+        if (!board[fr][fc]) return false;
+        return true;
     }
 }
 
@@ -44,15 +41,16 @@ class ChessAI {
                 if (board[r][c] && board[r][c] === board[r][c].toLowerCase()) {
                     for (let tr = 0; tr < 8; tr++) {
                         for (let tc = 0; tc < 8; tc++) {
-                            moves.push({ fromRow: r, fromCol: c, toRow: tr, toCol: tc });
+                            moves.push({ fr: r, fc: c, tr, tc });
                         }
                     }
                 }
             }
         }
 
-        if (moves.length === 0) return null;
+        if (!moves.length) return null;
 
+        // future: add smarter logic for medium/hard
         return moves[Math.floor(Math.random() * moves.length)];
     }
 }
@@ -60,8 +58,8 @@ class ChessAI {
 class ChessGame {
     constructor() {
         this.board = new Board();
-        this.moveValidator = new MoveValidator();
-        this.chessAI = new ChessAI();
+        this.validator = new MoveValidator();
+        this.ai = new ChessAI();
         this.currentTurn = "white";
         this.selected = null;
         this.level = "easy";
@@ -74,43 +72,39 @@ class ChessGame {
         this.ui.renderBoard();
     }
 
-    makeMove(fromRow, fromCol, toRow, toCol) {
+    makeMove(fr, fc, tr, tc) {
 
-        const targetPiece = this.board.squares[toRow][toCol];
+        const targetPiece = this.board.squares[tr][tc];
 
-        if (!this.moveValidator.validateMove(
-            this.board.squares, fromRow, fromCol, toRow, toCol
-        )) return;
+        if (!this.validator.validateMove(this.board.squares, fr, fc, tr, tc))
+            return;
 
-        this.board.movePiece(fromRow, fromCol, toRow, toCol);
+        this.board.movePiece(fr, fc, tr, tc);
 
         this.ui.renderBoard();
 
-        // 🎬 Capture effect
         if (targetPiece) {
-            this.ui.playCaptureEffect(toRow, toCol);
+            this.ui.playCaptureEffect(tr, tc);
         }
 
-        this.currentTurn = this.currentTurn === "white" ? "black" : "white";
+        this.currentTurn = "black";
 
-        if (this.currentTurn === "black") {
-            setTimeout(() => this.aiMove(), 500);
-        }
+        setTimeout(() => this.aiMove(), 500);
     }
 
     aiMove() {
 
-        const move = this.chessAI.calculateBestMove(this.board.squares, this.level);
+        const move = this.ai.calculateBestMove(this.board.squares, this.level);
         if (!move) return;
 
-        const targetPiece = this.board.squares[move.toRow][move.toCol];
+        const targetPiece = this.board.squares[move.tr][move.tc];
 
-        this.board.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol);
+        this.board.movePiece(move.fr, move.fc, move.tr, move.tc);
 
         this.ui.renderBoard();
 
         if (targetPiece) {
-            this.ui.playCaptureEffect(move.toRow, move.toCol);
+            this.ui.playCaptureEffect(move.tr, move.tc);
         }
 
         this.currentTurn = "white";
@@ -133,24 +127,31 @@ class ChessGameUI {
     }
 
     renderBoard() {
+
         this.boardElement.innerHTML = "";
 
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
 
                 const square = document.createElement("div");
-                square.className = "square " + ((r + c) % 2 === 0 ? "white-square" : "black-square");
+                square.className = "square " + ((r+c)%2===0 ? "white-square" : "black-square");
 
                 const piece = this.game.board.squares[r][c];
                 if (piece) square.textContent = this.pieces[piece];
 
                 square.addEventListener("click", () => {
-                    Add highlighting
+
+                    if (this.game.currentTurn !== "white") return;
+
                     if (this.game.selected) {
-                        this.game.makeMove(this.game.selected.row, this.game.selected.col, r, c);
+                        this.game.makeMove(
+                            this.game.selected.r,
+                            this.game.selected.c,
+                            r, c
+                        );
                         this.game.selected = null;
                     } else {
-                        this.game.selected = { row: r, col: c };
+                        this.game.selected = { r, c };
                     }
                 });
 
@@ -175,7 +176,7 @@ class ChessGameUI {
     }
 }
 
-/* ===== INITIALIZATION ===== */
+/* INITIALIZATION */
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -185,9 +186,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("startBtn").onclick = () => game.startGame();
     document.getElementById("resetBtn").onclick = () => game.startGame();
+
     document.getElementById("themeBtn").onclick = () => {
         document.body.classList.toggle("light-mode");
     };
+
+    document.getElementById("modeBtn").onclick = () => {
+        document.body.classList.toggle("mode-3d");
+    };
+
+    const levelSelect = document.getElementById("levelSelect");
+    if (levelSelect) {
+        levelSelect.onchange = (e) => {
+            game.level = e.target.value;
+        };
+    }
 
     game.startGame();
 });
