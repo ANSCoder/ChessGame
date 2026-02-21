@@ -1,0 +1,44 @@
+:root {
+  --primary-color: #4CAF50;
+  --secondary-color: #333;
+  --background-color: #f4f4f4;
+  --font-color: #fff;
+  --font-family: 'Arial', sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--background-color);
+}
+
+h1, h2, h3 {
+  color: var(--primary-color);
+}
+
+.chess-board {
+  display: grid;
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1;
+  margin: 20px auto;
+}
+
+.chess-board div {
+  width: 100%;
+  height: 100%;
+}
+
+.white-squares {
+  background-color: #eee;
+}
+
+.black-squares {
+  background-color: #666;
+}
+
+@media (max-width: 600px) {
+  .chess-board {
+    width: 90%;
+  }
+}
