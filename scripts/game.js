@@ -1,140 +1,20 @@
-class Board {
-    constructor() {
-        this.squares = this.initializeBoard();
-    }
+document.addEventListener("DOMContentLoaded", () => {
 
-    initializeBoard() {
-        return [
-            ['r','n','b','q','k','b','n','r'],
-            ['p','p','p','p','p','p','p','p'],
-            [null,null,null,null,null,null,null,null],
-            [null,null,null,null,null,null,null,null],
-            [null,null,null,null,null,null,null,null],
-            [null,null,null,null,null,null,null,null],
-            ['P','P','P','P','P','P','P','P'],
-            ['R','N','B','Q','K','B','N','R']
-        ];
-    }
+    const game = new Chess();
+    const boardElement = document.getElementById("chessBoard");
 
-    movePiece(fr, fc, tr, tc) {
-        this.squares[tr][tc] = this.squares[fr][fc];
-        this.squares[fr][fc] = null;
-    }
-}
+    let selectedSquare = null;
+    let level = "easy";
 
-class MoveValidator {
-    validateMove(board, fr, fc, tr, tc) {
-        if (tr < 0 || tr > 7 || tc < 0 || tc > 7) return false;
-        if (fr === tr && fc === tc) return false;
-        if (!board[fr][fc]) return false;
-        return true;
-    }
-}
+    const pieceMap = {
+        p:'♟', r:'♜', n:'♞', b:'♝', q:'♛', k:'♚',
+        P:'♙', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔'
+    };
 
-class ChessAI {
-    calculateBestMove(board, level = "easy") {
+    function renderBoard() {
 
-        const moves = [];
-
-        for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
-
-                if (board[r][c] && board[r][c] === board[r][c].toLowerCase()) {
-
-                    for (let tr = 0; tr < 8; tr++) {
-                        for (let tc = 0; tc < 8; tc++) {
-
-                            if (!(r === tr && c === tc)) {
-                                moves.push({ fr: r, fc: c, tr, tc });
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!moves.length) return null;
-
-        // For now difficulty behaves same (future: minimax)
-        return moves[Math.floor(Math.random() * moves.length)];
-    }
-}
-
-class ChessGame {
-    constructor() {
-        this.board = new Board();
-        this.validator = new MoveValidator();
-        this.ai = new ChessAI();
-        this.currentTurn = "white";
-        this.selected = null;
-        this.level = "easy";
-    }
-
-    startGame() {
-        this.board = new Board();
-        this.currentTurn = "white";
-        this.selected = null;
-        this.ui.renderBoard();
-    }
-
-    makeMove(fr, fc, tr, tc) {
-
-        const targetPiece = this.board.squares[tr][tc];
-
-        if (!this.validator.validateMove(this.board.squares, fr, fc, tr, tc))
-            return;
-
-        this.board.movePiece(fr, fc, tr, tc);
-        this.selected = null;
-
-        this.ui.renderBoard();
-
-        if (targetPiece) {
-            this.ui.playCaptureEffect(tr, tc);
-        }
-
-        this.currentTurn = "black";
-
-        setTimeout(() => this.aiMove(), 500);
-    }
-
-    aiMove() {
-
-        const move = this.ai.calculateBestMove(this.board.squares, this.level);
-        if (!move) return;
-
-        const targetPiece = this.board.squares[move.tr][move.tc];
-
-        this.board.movePiece(move.fr, move.fc, move.tr, move.tc);
-
-        this.ui.renderBoard();
-
-        if (targetPiece) {
-            this.ui.playCaptureEffect(move.tr, move.tc);
-        }
-
-        this.currentTurn = "white";
-    }
-
-    setUI(ui) {
-        this.ui = ui;
-    }
-}
-
-class ChessGameUI {
-    constructor(game) {
-        this.game = game;
-        this.boardElement = document.getElementById("chessBoard");
-
-        this.pieces = {
-            r:'♜',n:'♞',b:'♝',q:'♛',k:'♚',p:'♟',
-            R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔',P:'♙'
-        };
-    }
-
-    renderBoard() {
-
-        this.boardElement.innerHTML = "";
+        boardElement.innerHTML = "";
+        const board = game.board();
 
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
@@ -142,65 +22,93 @@ class ChessGameUI {
                 const square = document.createElement("div");
                 square.className = "square " + ((r+c)%2===0 ? "white-square" : "black-square");
 
-                const piece = this.game.board.squares[r][c];
-                if (piece) square.textContent = this.pieces[piece];
+                const piece = board[r][c];
 
-                // Highlight selected square
-                if (this.game.selected &&
-                    this.game.selected.r === r &&
-                    this.game.selected.c === c) {
+                if (piece) {
+                    const key = piece.color === "w"
+                        ? piece.type.toUpperCase()
+                        : piece.type;
+
+                    square.textContent = pieceMap[key];
+                }
+
+                const squareName = String.fromCharCode(97+c) + (8-r);
+
+                if (selectedSquare === squareName) {
                     square.classList.add("selected");
                 }
 
-                square.addEventListener("click", () => {
+                square.addEventListener("click", () => handleClick(squareName));
 
-                    if (this.game.currentTurn !== "white") return;
-
-                    if (this.game.selected) {
-                        this.game.makeMove(
-                            this.game.selected.r,
-                            this.game.selected.c,
-                            r, c
-                        );
-                    } else {
-                        this.game.selected = { r, c };
-                        this.renderBoard();
-                    }
-                });
-
-                this.boardElement.appendChild(square);
+                boardElement.appendChild(square);
             }
         }
     }
 
-    playCaptureEffect(row, col) {
+    function handleClick(square) {
 
-        const index = row * 8 + col;
-        const square = this.boardElement.children[index];
-        if (!square) return;
+        if (selectedSquare) {
 
-        square.classList.add("capture-explode");
-        document.body.classList.add("screen-shake");
+            const move = game.move({
+                from: selectedSquare,
+                to: square,
+                promotion: "q"
+            });
 
-        setTimeout(() => {
-            square.classList.remove("capture-explode");
-            document.body.classList.remove("screen-shake");
-        }, 400);
+            selectedSquare = null;
+
+            if (move) {
+                renderBoard();
+                if (!game.game_over()) {
+                    setTimeout(aiMove, 400);
+                }
+            } else {
+                renderBoard();
+            }
+
+            return;
+        }
+
+        const piece = game.get(square);
+
+        if (piece && piece.color === "w") {
+            selectedSquare = square;
+            renderBoard();
+        }
     }
-}
 
-/* ===========================
-   INITIALIZATION
-=========================== */
+    function aiMove() {
 
-document.addEventListener("DOMContentLoaded", () => {
+        const moves = game.moves({ verbose: true });
+        if (!moves.length) return;
 
-    const game = new ChessGame();
-    const ui = new ChessGameUI(game);
-    game.setUI(ui);
+        let move;
 
-    document.getElementById("startBtn").onclick = () => game.startGame();
-    document.getElementById("resetBtn").onclick = () => game.startGame();
+        if (level === "easy") {
+            move = moves[Math.floor(Math.random() * moves.length)];
+        }
+
+        if (level === "medium") {
+            move = moves[Math.floor(Math.random() * moves.length)];
+        }
+
+        if (level === "hard") {
+            move = moves[Math.floor(Math.random() * moves.length)];
+        }
+
+        game.move(move);
+        renderBoard();
+    }
+
+    document.getElementById("startBtn").onclick = () => {
+        game.reset();
+        renderBoard();
+    };
+
+    document.getElementById("resetBtn").onclick = () => {
+        game.reset();
+        renderBoard();
+    };
 
     document.getElementById("themeBtn").onclick = () => {
         document.body.classList.toggle("light-mode");
@@ -217,9 +125,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 .forEach(b => b.classList.remove("active"));
 
             btn.classList.add("active");
-            game.level = btn.dataset.level;
+            level = btn.dataset.level;
         });
     });
 
-    game.startGame();
+    renderBoard();
 });
