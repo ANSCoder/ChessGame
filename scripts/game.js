@@ -10,6 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
         let selectedSquare = null;
         let level = "easy";
 
+        // Sound Effects
+        const moveSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+        const captureSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3');
+        const checkSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3');
+
         const pieceMap = {
             p:'♟', r:'♜', n:'♞', b:'♝', q:'♛', k:'♚',
             P:'♙', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔'
@@ -19,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!boardElement) return;
             boardElement.innerHTML = "";
             const board = game.board();
+            const turn = game.turn();
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
@@ -28,11 +34,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     square.setAttribute("data-square", squareName);
                     
                     const piece = board[r][c];
+                    
+                    // Render Piece
                     if (piece) {
                         const key = piece.color === "w" ? piece.type.toUpperCase() : piece.type.toLowerCase();
                         square.textContent = pieceMap[key];
+
+                        // Highlight King if in Check
+                        if (piece.type === 'k' && piece.color === turn && game.in_check()) {
+                            square.classList.add("check-alert");
+                        }
                     }
-                    if (selectedSquare === squareName) square.classList.add("selected");
+
+                    // Highlight Selection
+                    if (selectedSquare === squareName) {
+                        square.classList.add("selected");
+                    }
+
                     square.onclick = () => handleClick(squareName);
                     boardElement.appendChild(square);
                 }
@@ -41,21 +59,56 @@ document.addEventListener("DOMContentLoaded", () => {
             checkGameOver();
         }
 
+        function highlightLegalMoves(squareName) {
+            // Remove old highlights
+            document.querySelectorAll(".square").forEach(s => s.classList.remove("legal-move"));
+            
+            const moves = game.moves({ square: squareName, verbose: true });
+            moves.forEach(move => {
+                const el = document.querySelector(`[data-square="${move.to}"]`);
+                if (el) el.classList.add("legal-move");
+            });
+        }
+
         function handleClick(squareName) {
             const piece = game.get(squareName);
+
+            // Select White Piece
             if (piece && piece.color === "w") {
                 selectedSquare = squareName;
                 renderBoard();
+                highlightLegalMoves(squareName);
                 return;
             }
+
+            // Attempt Move
             if (selectedSquare) {
-                const move = game.move({ from: selectedSquare, to: squareName, promotion: "q" });
+                const move = game.move({ 
+                    from: selectedSquare, 
+                    to: squareName, 
+                    promotion: "q" 
+                });
                 
                 if (move) {
-                    if (move.captured) triggerCaptureAnimation(squareName);
+                    if (move.captured) {
+                        captureSound.play();
+                        triggerCaptureAnimation(squareName);
+                    } else {
+                        moveSound.play();
+                    }
+
+                    if (game.in_check()) checkSound.play();
+
                     selectedSquare = null;
                     renderBoard();
-                    if (!game.game_over()) setTimeout(aiMove, 400);
+                    
+                    if (!game.game_over()) {
+                        setTimeout(aiMove, 600);
+                    }
+                } else {
+                    // Invalid move - deselect
+                    selectedSquare = null;
+                    renderBoard();
                 }
             }
         }
@@ -63,8 +116,18 @@ document.addEventListener("DOMContentLoaded", () => {
         function aiMove() {
             const moves = game.moves();
             if (moves.length > 0) {
+                // Random move for 'easy', could be smarter for other levels
                 const move = game.move(moves[Math.floor(Math.random() * moves.length)]);
-                if (move.captured) triggerCaptureAnimation(move.to);
+                
+                if (move.captured) {
+                    captureSound.play();
+                    triggerCaptureAnimation(move.to);
+                } else {
+                    moveSound.play();
+                }
+
+                if (game.in_check()) checkSound.play();
+                
                 renderBoard();
             }
         }
@@ -89,10 +152,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (game.game_over()) {
                 let status = "";
                 if (game.in_checkmate()) {
-                    status = "CHECKMATE! " + (game.turn() === 'w' ? "BLACK WINS" : "WHITE WINS");
-                    if(game.turn() === 'b') launchFireworks();
-                } else {
-                    status = "GAME OVER - DRAW";
+                    const winner = game.turn() === 'w' ? "BLACK AI" : "YOU";
+                    status = `CHECKMATE! ${winner} WINS`;
+                    if(winner === "YOU") launchFireworks();
+                } else if (game.in_draw()) {
+                    status = "GAME OVER - IT'S A DRAW";
+                } else if (game.in_stalemate()) {
+                    status = "STALEMATE - DRAW";
                 }
 
                 const overlay = document.createElement("div");
@@ -101,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="winner-card">
                         <h1 style="font-size:4rem">🏆</h1>
                         <h2>${status}</h2>
-                        <button onclick="location.reload()" class="control-btn" style="margin-top:20px; background:#27ae60">PLAY AGAIN</button>
+                        <button onclick="location.reload()" class="control-btn" style="margin-top:20px; background:#22c55e">PLAY AGAIN</button>
                     </div>
                 `;
                 document.body.appendChild(overlay);
@@ -109,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function launchFireworks() {
-            for(let i=0; i<30; i++) {
+            for(let i=0; i<40; i++) {
                 setTimeout(() => {
                     const f = document.createElement("div");
                     f.className = "firework";
@@ -117,14 +183,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     f.style.top = Math.random() * 100 + "vh";
                     f.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
                     document.body.appendChild(f);
-                    setTimeout(() => f.remove(), 1000);
-                }, i * 100);
+                    setTimeout(() => f.remove(), 1200);
+                }, i * 150);
             }
         }
 
         // --- BUTTONS ---
-        document.getElementById("resetBtn").onclick = () => { game.reset(); renderBoard(); };
-        document.getElementById("startBtn").onclick = () => { game.reset(); renderBoard(); };
+        document.getElementById("resetBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
+        document.getElementById("startBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
         document.getElementById("themeBtn").onclick = () => document.body.classList.toggle("light-mode");
         document.getElementById("modeBtn").onclick = () => document.body.classList.toggle("mode-3d");
 
