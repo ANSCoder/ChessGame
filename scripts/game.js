@@ -2,14 +2,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let game = new Chess();
     const boardElement = document.getElementById("chessBoard");
     let selectedSquare = null;
-    let difficulty = 'easy'; // Default
+    let difficulty = 'easy'; // Default difficulty
 
     const pieceMap = {
-        'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
-        'P': '♟', 'R': '♜', 'N': '♞', 'B': '♝', 'Q': '♛', 'K': '♚'
+        'p':'♟','r':'♜','n':'♞','b':'♝','q':'♛','k':'♚',
+        'P':'♟','R':'♜','N':'♞','B':'♝','Q':'♛','K':'♚'
     };
 
-    function renderBoard(moveObj = null) {
+    function renderBoard() {
         if (!boardElement) return;
         boardElement.innerHTML = "";
         const board = game.board();
@@ -22,13 +22,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 const piece = board[r][c];
                 if (piece) {
-                    const icon = pieceMap[piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase()];
-                    square.textContent = icon;
+                    square.textContent = pieceMap[piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase()];
+                    // CSS classes: white-piece aur black-piece
                     square.classList.add(piece.color === 'w' ? "white-piece" : "black-piece");
                 }
 
                 if (selectedSquare === sqName) square.classList.add("selected");
-                
                 square.onclick = () => handleSquareClick(sqName);
                 boardElement.appendChild(square);
             }
@@ -38,21 +37,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function handleSquareClick(sq) {
         const piece = game.get(sq);
-
-        // Select own color piece
         if (piece && piece.color === game.turn()) {
             selectedSquare = sq;
             renderBoard();
             return;
         }
 
-        // Try to move
         if (selectedSquare) {
             const move = game.move({ from: selectedSquare, to: sq, promotion: 'q' });
             if (move) {
                 selectedSquare = null;
                 renderBoard();
-                if (!game.game_over()) setTimeout(aiMove, 600);
+                if (!game.game_over()) setTimeout(aiMove, 600); // AI ko trigger karna
             } else {
                 selectedSquare = null;
                 renderBoard();
@@ -60,27 +56,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- AI MOVE FUNCTION (FIXED) ---
+    // --- AI LOGIC BASED ON LEVEL ---
     function aiMove() {
         const moves = game.moves();
         if (moves.length === 0) return;
 
-        let selectedMove;
+        let chosenMove;
         if (difficulty === 'easy') {
-            // Totally random
-            selectedMove = moves[Math.floor(Math.random() * moves.length)];
-        } else if (difficulty === 'medium') {
-            // Prioritize captures
-            const captures = moves.filter(m => m.includes('x'));
-            selectedMove = captures.length > 0 ? captures[0] : moves[Math.floor(Math.random() * moves.length)];
+            chosenMove = moves[Math.floor(Math.random() * moves.length)]; // Random move
         } else {
-            // Hard: Priority to checks and captures
-            const checks = moves.filter(m => m.includes('+'));
+            // Medium/Hard: Priority to captures (goti kaatna)
             const captures = moves.filter(m => m.includes('x'));
-            selectedMove = checks.length > 0 ? checks[0] : (captures.length > 0 ? captures[0] : moves[Math.floor(Math.random() * moves.length)]);
+            chosenMove = captures.length > 0 ? captures[0] : moves[Math.floor(Math.random() * moves.length)];
         }
 
-        game.move(selectedMove);
+        game.move(chosenMove);
         renderBoard();
     }
 
@@ -95,23 +85,21 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(overlay);
     }
 
-    // --- BUTTON EVENT LISTENERS ---
-    const resetGame = () => { game = new Chess(); selectedSquare = null; renderBoard(); };
-    
-    document.getElementById("startBtn").onclick = resetGame;
-    document.getElementById("resetBtn").onclick = resetGame;
-    document.getElementById("themeBtn").onclick = () => document.body.classList.toggle("light-mode");
-
-    // Difficulty buttons setup
+    // --- LEVEL BUTTON LISTENERS ---
     const diffBtns = document.querySelectorAll(".diff-btn");
     diffBtns.forEach(btn => {
         btn.onclick = (e) => {
-            diffBtns.forEach(b => b.classList.remove("active"));
-            e.target.classList.add("active");
-            difficulty = e.target.id.toLowerCase();
-            console.log("Difficulty set to:", difficulty);
+            diffBtns.forEach(b => b.classList.remove("active")); // Purana active hatana
+            e.target.classList.add("active"); // Naya active lagana
+            difficulty = e.target.innerText.toLowerCase(); // Level set karna
         };
     });
+
+    // Theme & Reset Buttons
+    document.getElementById("themeBtn").onclick = () => document.body.classList.toggle("light-mode");
+    const reset = () => { game = new Chess(); selectedSquare = null; renderBoard(); };
+    document.getElementById("startBtn").onclick = reset;
+    document.getElementById("resetBtn").onclick = reset;
 
     renderBoard();
 });
