@@ -38,10 +38,15 @@ class ChessAI {
 
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
+
                 if (board[r][c] && board[r][c] === board[r][c].toLowerCase()) {
+
                     for (let tr = 0; tr < 8; tr++) {
                         for (let tc = 0; tc < 8; tc++) {
-                            moves.push({ fr: r, fc: c, tr, tc });
+
+                            if (!(r === tr && c === tc)) {
+                                moves.push({ fr: r, fc: c, tr, tc });
+                            }
                         }
                     }
                 }
@@ -50,7 +55,7 @@ class ChessAI {
 
         if (!moves.length) return null;
 
-        // future: add smarter logic for medium/hard
+        // For now difficulty behaves same (future: minimax)
         return moves[Math.floor(Math.random() * moves.length)];
     }
 }
@@ -80,6 +85,7 @@ class ChessGame {
             return;
 
         this.board.movePiece(fr, fc, tr, tc);
+        this.selected = null;
 
         this.ui.renderBoard();
 
@@ -139,6 +145,13 @@ class ChessGameUI {
                 const piece = this.game.board.squares[r][c];
                 if (piece) square.textContent = this.pieces[piece];
 
+                // Highlight selected square
+                if (this.game.selected &&
+                    this.game.selected.r === r &&
+                    this.game.selected.c === c) {
+                    square.classList.add("selected");
+                }
+
                 square.addEventListener("click", () => {
 
                     if (this.game.currentTurn !== "white") return;
@@ -149,9 +162,9 @@ class ChessGameUI {
                             this.game.selected.c,
                             r, c
                         );
-                        this.game.selected = null;
                     } else {
                         this.game.selected = { r, c };
+                        this.renderBoard();
                     }
                 });
 
@@ -176,7 +189,9 @@ class ChessGameUI {
     }
 }
 
-/* INITIALIZATION */
+/* ===========================
+   INITIALIZATION
+=========================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -195,12 +210,16 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.toggle("mode-3d");
     };
 
-    const levelSelect = document.getElementById("levelSelect");
-    if (levelSelect) {
-        levelSelect.onchange = (e) => {
-            game.level = e.target.value;
-        };
-    }
+    document.querySelectorAll(".level-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+
+            document.querySelectorAll(".level-btn")
+                .forEach(b => b.classList.remove("active"));
+
+            btn.classList.add("active");
+            game.level = btn.dataset.level;
+        });
+    });
 
     game.startGame();
 });
