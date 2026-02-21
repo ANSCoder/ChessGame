@@ -24,16 +24,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     const square = document.createElement("div");
                     const squareName = String.fromCharCode(97 + c) + (8 - r);
                     square.className = "square " + ((r + c) % 2 === 0 ? "white-square" : "black-square");
-                    square.setAttribute("data-square", squareName);
                     
                     const piece = board[r][c];
                     if (piece) {
                         const key = piece.color === "w" ? piece.type.toUpperCase() : piece.type.toLowerCase();
                         const icon = pieceMap[key];
                         
-                        square.textContent = icon;
-                        
-                        // 3D FIX: Attribute aur Color class
+                        // Set attributes for 3D CSS
                         square.setAttribute("data-piece", icon);
                         if(piece.color === 'w') square.classList.add("white-piece");
                     }
@@ -54,12 +51,14 @@ document.addEventListener("DOMContentLoaded", () => {
         function handleClick(squareName) {
             const piece = game.get(squareName);
 
+            // Select White Piece
             if (piece && piece.color === "w") {
                 selectedSquare = squareName;
                 renderBoard();
                 return;
             }
 
+            // Move Piece
             if (selectedSquare) {
                 const move = game.move({ from: selectedSquare, to: squareName, promotion: "q" });
                 if (move) {
@@ -88,26 +87,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function checkGameOver() {
             if (game.game_over()) {
+                const status = game.in_checkmate() ? "CHECKMATE!" : "GAME OVER";
                 const overlay = document.createElement("div");
                 overlay.className = "game-over-overlay";
-                overlay.innerHTML = `<div class="winner-card">
-                    <h2>GAME OVER</h2>
-                    <button onclick="location.reload()" class="control-btn" style="margin-top:20px">PLAY AGAIN</button>
-                </div>`;
+                overlay.innerHTML = `
+                    <div class="winner-card">
+                        <h1>${status}</h1>
+                        <button onclick="location.reload()" class="control-btn" style="margin-top:20px">PLAY AGAIN</button>
+                    </div>`;
                 document.body.appendChild(overlay);
             }
         }
 
-        document.getElementById("modeBtn").onclick = () => {
-            document.body.classList.toggle("mode-3d");
-            renderBoard();
-        };
-
-        document.getElementById("themeBtn").onclick = () => document.body.classList.toggle("light-mode");
+        // Event Handlers
+        document.getElementById("resetBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
+        document.getElementById("startBtn").onclick = () => { game.reset(); selectedSquare = null; renderBoard(); };
 
         renderBoard();
     };
 
+    // Library Load
     const script = document.createElement('script');
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js";
     script.onload = startChessGame;
