@@ -167,6 +167,10 @@ body.light-mode {
     animation: fadeIn 0.3s ease;
 }
 
+.square.last-move {
+    background-color: rgba(255, 255, 0, 0.3) !important; /* Halka peela highlight */
+}
+
 .square.check-alert {
     background-color: #ef4444 !important;
     animation: pulseRed 1s infinite;
