@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>♛ CHESS ♛</title>
 
+<!-- CSS -->
 <link rel="stylesheet" href="styles/styles.css">
 
-<!-- IMPORTANT: USE CDN -->
+<!-- IMPORTANT: Chess engine via CDN (NO local file) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
 
 </head>
@@ -17,7 +18,6 @@
 <h1 class="title">♛ CHESS ♛</h1>
 
 <div class="controls">
-
     <button id="startBtn" class="control-btn">Start</button>
     <button id="resetBtn" class="control-btn">Reset</button>
 
@@ -29,13 +29,13 @@
 
     <button id="themeBtn" class="control-btn">Dark / Light</button>
     <button id="modeBtn" class="control-btn">2D / 3D</button>
-
 </div>
 
 <div class="board-wrapper">
     <div id="chessBoard" class="chess-board"></div>
 </div>
 
+<!-- JS (MUST be last) -->
 <script src="scripts/game.js"></script>
 
 </body>
