@@ -1,125 +1,175 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-const game = new Chess();
-const boardElement = document.getElementById("chessBoard");
+    const game = new Chess();
+    const boardElement = document.getElementById("chessBoard");
 
-let selected = null;
-let level = "easy";
+    let selectedSquare = null;
+    let level = "easy";
 
-const pieceMap = {
-p:'♟', r:'♜', n:'♞', b:'♝', q:'♛', k:'♚',
-P:'♙', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔'
-};
+    const pieceMap = {
+        p:'♟', r:'♜', n:'♞', b:'♝', q:'♛', k:'♚',
+        P:'♙', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔'
+    };
 
-function render() {
+    /* ===============================
+       RENDER BOARD
+    =============================== */
 
-boardElement.innerHTML="";
-const board=game.board();
+    function renderBoard() {
 
-for(let r=0;r<8;r++){
-for(let c=0;c<8;c++){
+        boardElement.innerHTML = "";
+        const board = game.board();
 
-const square=document.createElement("div");
-square.className="square "+((r+c)%2===0?"white-square":"black-square");
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
 
-const name=String.fromCharCode(97+c)+(8-r);
-const piece=board[r][c];
+                const square = document.createElement("div");
+                square.className = "square " + ((r+c)%2===0 ? "white-square" : "black-square");
 
-if(piece){
-const key=piece.color==="w"?piece.type.toUpperCase():piece.type;
-square.textContent=pieceMap[key];
-}
+                const squareName = String.fromCharCode(97+c) + (8-r);
+                const piece = board[r][c];
 
-if(selected===name) square.classList.add("selected");
+                if (piece) {
+                    const key = piece.color === "w"
+                        ? piece.type.toUpperCase()
+                        : piece.type;
+                    square.textContent = pieceMap[key];
+                }
 
-square.onclick=()=>handleClick(name);
+                if (selectedSquare === squareName) {
+                    square.classList.add("selected");
+                }
 
-boardElement.appendChild(square);
-}
-}
-}
+                square.addEventListener("click", () => handleClick(squareName));
 
-function handleClick(square){
+                boardElement.appendChild(square);
+            }
+        }
+    }
 
-if(game.turn()!=="w") return;
+    /* ===============================
+       HANDLE PLAYER MOVE
+    =============================== */
 
-if(selected){
-const move=game.move({from:selected,to:square,promotion:"q"});
-selected=null;
-render();
-if(move && !game.game_over()) setTimeout(aiMove,300);
-return;
-}
+    function handleClick(square) {
 
-const piece=game.get(square);
-if(piece && piece.color==="w"){
-selected=square;
-render();
-}
-}
+        if (game.turn() !== "w") return;
 
-function aiMove(){
+        if (selectedSquare) {
 
-const moves=game.moves({verbose:true});
-if(!moves.length) return;
+            const move = game.move({
+                from: selectedSquare,
+                to: square,
+                promotion: "q"
+            });
 
-let move;
+            selectedSquare = null;
 
-if(level==="easy"){
-move=moves[Math.floor(Math.random()*moves.length)];
-}
+            if (move) {
+                renderBoard();
+                if (!game.game_over()) {
+                    setTimeout(aiMove, 300);
+                }
+            } else {
+                renderBoard();
+            }
 
-if(level==="medium"){
-const captures=moves.filter(m=>m.captured);
-move=captures.length?captures[Math.floor(Math.random()*captures.length)]
-:moves[Math.floor(Math.random()*moves.length)];
-}
+            return;
+        }
 
-if(level==="hard"){
-const captures=moves.filter(m=>m.captured);
-if(captures.length){
-captures.sort((a,b)=>pieceValue(b.captured)-pieceValue(a.captured));
-move=captures[0];
-}else{
-move=moves[Math.floor(Math.random()*moves.length)];
-}
-}
+        const piece = game.get(square);
+        if (piece && piece.color === "w") {
+            selectedSquare = square;
+            renderBoard();
+        }
+    }
 
-game.move(move);
-render();
-}
+    /* ===============================
+       AI MOVE
+    =============================== */
 
-function pieceValue(piece){
-const values={p:1,n:3,b:3,r:5,q:9,k:100};
-return values[piece]||0;
-}
+    function aiMove() {
 
-document.getElementById("startBtn").onclick=()=>{
-game.reset();
-render();
-};
+        const moves = game.moves({ verbose: true });
+        if (!moves.length) return;
 
-document.getElementById("resetBtn").onclick=()=>{
-game.reset();
-render();
-};
+        let move;
 
-document.getElementById("themeBtn").onclick=()=>{
-document.body.classList.toggle("light-mode");
-};
+        if (level === "easy") {
+            move = randomMove(moves);
+        }
 
-document.getElementById("modeBtn").onclick=()=>{
-document.body.classList.toggle("mode-3d");
-};
+        if (level === "medium") {
+            const captureMoves = moves.filter(m => m.captured);
+            move = captureMoves.length
+                ? randomMove(captureMoves)
+                : randomMove(moves);
+        }
 
-document.querySelectorAll(".level-btn").forEach(btn=>{
-btn.addEventListener("click",()=>{
-document.querySelectorAll(".level-btn").forEach(b=>b.classList.remove("active"));
-btn.classList.add("active");
-level=btn.dataset.level;
-});
-});
+        if (level === "hard") {
+            move = bestCaptureMove(moves) || randomMove(moves);
+        }
 
-render();
+        game.move(move);
+        renderBoard();
+    }
+
+    function randomMove(moves) {
+        return moves[Math.floor(Math.random() * moves.length)];
+    }
+
+    function bestCaptureMove(moves) {
+        const captureMoves = moves.filter(m => m.captured);
+        if (!captureMoves.length) return null;
+
+        captureMoves.sort((a,b) => pieceValue(b.captured) - pieceValue(a.captured));
+        return captureMoves[0];
+    }
+
+    function pieceValue(piece) {
+        const values = { p:1, n:3, b:3, r:5, q:9, k:100 };
+        return values[piece] || 0;
+    }
+
+    /* ===============================
+       BUTTON CONTROLS
+    =============================== */
+
+    document.getElementById("startBtn").onclick = () => {
+        game.reset();
+        selectedSquare = null;
+        renderBoard();
+    };
+
+    document.getElementById("resetBtn").onclick = () => {
+        game.reset();
+        selectedSquare = null;
+        renderBoard();
+    };
+
+    document.getElementById("themeBtn").onclick = () => {
+        document.body.classList.toggle("light-mode");
+    };
+
+    document.getElementById("modeBtn").onclick = () => {
+        document.body.classList.toggle("mode-3d");
+    };
+
+    document.querySelectorAll(".level-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+
+            document.querySelectorAll(".level-btn")
+                .forEach(b => b.classList.remove("active"));
+
+            btn.classList.add("active");
+            level = btn.dataset.level;
+        });
+    });
+
+    /* ===============================
+       INIT
+    =============================== */
+
+    renderBoard();
 
 });
