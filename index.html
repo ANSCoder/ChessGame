@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>♛ CHESS ♛</title>
 
-<!-- FIXED PATH -->
 <link rel="stylesheet" href="styles/styles.css">
 
 </head>
@@ -14,14 +13,23 @@
 <h1 class="title">♛ CHESS ♛</h1>
 
 <div class="controls">
+
     <button id="startBtn">Start</button>
     <button id="resetBtn">Reset</button>
-    <button id="themeBtn">Toggle Dark/Light</button>
+
+    <select id="levelSelect">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+    </select>
+
+    <button id="themeBtn">Toggle Dark / Light</button>
+    <button id="modeBtn">2D / 3D</button>
+
 </div>
 
 <div id="chessBoard" class="chess-board"></div>
 
-<!-- FIXED PATH -->
 <script src="scripts/game.js"></script>
 
 </body>
