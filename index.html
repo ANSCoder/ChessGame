@@ -1,42 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>♛ CHESS ♛</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♛ CHESS ♛</title>
 
-<!-- CSS -->
-<link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/styles.css">
 
-<!-- IMPORTANT: Chess engine via CDN (NO local file) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
-
-</head>
+    </head>
 
 <body>
 
-<h1 class="title">♛ CHESS ♛</h1>
+    <h1 class="title">♛ CHESS ♛</h1>
 
-<div class="controls">
-    <button id="startBtn" class="control-btn">Start</button>
-    <button id="resetBtn" class="control-btn">Reset</button>
+    <div class="controls">
+        <button id="startBtn" class="control-btn">Start</button>
+        <button id="resetBtn" class="control-btn">Reset</button>
 
-    <div class="level-group">
-        <button class="control-btn level-btn active" data-level="easy">Easy</button>
-        <button class="control-btn level-btn" data-level="medium">Medium</button>
-        <button class="control-btn level-btn" data-level="hard">Hard</button>
+        <div class="level-group">
+            <button class="control-btn level-btn active" data-level="easy">Easy</button>
+            <button class="control-btn level-btn" data-level="medium">Medium</button>
+            <button class="control-btn level-btn" data-level="hard">Hard</button>
+        </div>
+
+        <button id="themeBtn" class="control-btn">Dark / Light</button>
+        <button id="modeBtn" class="control-btn">2D / 3D</button>
     </div>
 
-    <button id="themeBtn" class="control-btn">Dark / Light</button>
-    <button id="modeBtn" class="control-btn">2D / 3D</button>
-</div>
+    <div class="board-wrapper">
+        <div id="chessBoard" class="chess-board"></div>
+    </div>
 
-<div class="board-wrapper">
-    <div id="chessBoard" class="chess-board"></div>
-</div>
-
-<!-- JS (MUST be last) -->
-<script src="scripts/game.js"></script>
+    <script src="scripts/game.js"></script>
 
 </body>
 </html>
